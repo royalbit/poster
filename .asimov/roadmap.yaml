@@ -2,17 +2,7 @@
 #
 # WHAT to build - milestones only
 
-current:
-  version: "0.2.0"
-  status: done
-  summary: "Unit tests"
-  goal: "QUALITY"
-  deliverables:
-    - "[x] config.rs - pass parsing, token storage"
-    - "[x] posts.rs - YAML parsing, post lookup"
-    - "[x] linkedin.rs - OAuth code extraction, serialization"
-    - "[x] x.rs - OAuth signature, percent encoding"
-    - "[x] 55 unit tests passing"
+current: {}
 
 next: []
 

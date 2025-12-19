@@ -3,32 +3,24 @@
 # WHAT to build - milestones only
 
 current:
-  version: "0.1.0"
-  status: shipped
-  summary: "Core CLI functionality"
-  goal: "SHIP"
+  version: "0.2.0"
+  status: done
+  summary: "Unit tests"
+  goal: "QUALITY"
   deliverables:
-    - "[x] LinkedIn OAuth 2.0 authentication"
-    - "[x] LinkedIn posting via Marketing API"
-    - "[x] X/Twitter OAuth 1.0a posting"
-    - "[x] YAML-based post definitions"
-    - "[x] Dry-run mode for preview"
-    - "[x] Pedantic clippy lints, zero warnings"
+    - "[x] config.rs - pass parsing, token storage"
+    - "[x] posts.rs - YAML parsing, post lookup"
+    - "[x] linkedin.rs - OAuth code extraction, serialization"
+    - "[x] x.rs - OAuth signature, percent encoding"
+    - "[x] 55 unit tests passing"
 
 next:
-  - version: "0.2.0"
-    summary: "CRITICAL: Unit tests to 100%"
-    goal: "QUALITY"
-    priority: critical
-    deliverables:
-      - "[ ] config.rs - pass reading, token storage"
-      - "[ ] posts.rs - YAML loading, post lookup"
-      - "[ ] linkedin.rs - OAuth flow, API calls (mocked)"
-      - "[ ] x.rs - OAuth signature, API calls (mocked)"
-      - "[ ] 100% code coverage"
+  - version: "0.3.0"
+    summary: "Bluesky support"
+    goal: "REACH"
 
 backlog:
-  - "Bluesky support"
   - "Mastodon support"
   - "Scheduled posting"
   - "Post analytics tracking"
+  - "100% code coverage with mocked HTTP/subprocess"

@@ -1,0 +1,86 @@
+# Project Context - Rust
+# This file contains project-specific configuration.
+
+identity:
+  name: "daneel-poster"
+  type: rust
+  tagline: "Social media automation for DANEEL blog content"
+
+context:
+  parent_project: "../daneel"
+  relationship: |
+    DANEEL is the main project - a cognitive architecture for aligned ASI.
+    Timmy is the AI being built with this architecture.
+    Blog posts at royalbit.github.io/daneel document the development journey.
+    This tool automates posting blog content to LinkedIn and X/Twitter.
+  blog_url: "https://royalbit.github.io/daneel/"
+  youtube: "https://youtube.com/@DaneelAI"
+
+workflow:
+  usage: |
+    1. Blog posts are written in ../daneel/blog/content/posts/
+    2. Social content is curated in posts.yaml (x: and linkedin: fields)
+    3. AI assistant runs daneel-poster to publish to social platforms
+    4. Supports dry-run mode for preview before posting
+
+quality:
+  test: "cargo test"
+  lint: "cargo clippy -- -D warnings"
+  format: "cargo fmt --check"
+  build: "cargo build --release"
+
+files:
+  source:
+    - "src/main.rs - CLI entry point (clap)"
+    - "src/config.rs - Credentials via pass, token storage"
+    - "src/posts.rs - YAML post loading"
+    - "src/linkedin.rs - OAuth 2.0 + Marketing API"
+    - "src/x.rs - OAuth 1.0a + API v2"
+  config:
+    - "Cargo.toml - Dependencies and metadata"
+    - "posts.yaml - Social media content definitions"
+  secrets:
+    - "pass royalbit/linkedin - client_id, client_secret"
+    - "pass royalbit/x - consumer_key, consumer_secret, access_token, access_token_secret"
+
+patterns:
+  - "Result<T, E> for errors, no panics"
+  - "Credentials from pass (password-store), never hardcoded"
+  - "OAuth tokens stored in ~/.config/daneel-poster/"
+  - "Dry-run support for all posting operations"
+
+release:
+  profile: |
+    [profile.release]
+    lto = true
+    strip = true
+
+# v9.3.0: Coding standards for Rust projects (ADR-041)
+coding_standards:
+  code:
+    file_size:
+      soft_limit: 1000
+      hard_limit: 1500
+      note: "lines per file - split if exceeding"
+    coverage: "100%"
+    linting: "clippy pedantic, zero warnings"
+    tests: "colocated with code (#[cfg(test)] mod tests)"
+    formatting: "rustfmt (cargo fmt)"
+  documentation:
+    linting: "markdownlint-cli2"
+    style:
+      - "ATX-style headers (#)"
+      - "One sentence per line (for git diffs)"
+  architecture:
+    decisions: "ADR format in docs/adr/"
+    diagrams: "Mermaid preferred (text-based, version controlled)"
+
+# v8.8.0: Standard deliverables for coding projects (ADR-034)
+deliverables_template:
+  - "[ ] Unit tests pass"
+  - "[ ] E2E tests pass (if applicable)"
+  - "[ ] cargo clippy -- -D warnings (zero warnings)"
+  - "[ ] Update README if needed"
+  - "[ ] Update --help if CLI"
+  - "[ ] Commit and push"
+  - "[ ] GitHub release (if applicable)"

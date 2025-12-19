@@ -1,0 +1,34 @@
+# RoyalBit Asimov Roadmap
+#
+# WHAT to build - milestones only
+
+current:
+  version: "0.1.0"
+  status: complete
+  summary: "Core CLI functionality"
+  goal: "SHIP"
+  deliverables:
+    - "[x] LinkedIn OAuth 2.0 authentication"
+    - "[x] LinkedIn posting via Marketing API"
+    - "[x] X/Twitter OAuth 1.0a posting"
+    - "[x] YAML-based post definitions"
+    - "[x] Dry-run mode for preview"
+    - "[x] Pedantic clippy lints, zero warnings"
+
+next:
+  - version: "0.2.0"
+    summary: "CRITICAL: Unit tests to 100%"
+    goal: "QUALITY"
+    priority: critical
+    deliverables:
+      - "[ ] config.rs - pass reading, token storage"
+      - "[ ] posts.rs - YAML loading, post lookup"
+      - "[ ] linkedin.rs - OAuth flow, API calls (mocked)"
+      - "[ ] x.rs - OAuth signature, API calls (mocked)"
+      - "[ ] 100% code coverage"
+
+backlog:
+  - "Bluesky support"
+  - "Mastodon support"
+  - "Scheduled posting"
+  - "Post analytics tracking"

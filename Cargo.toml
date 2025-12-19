@@ -1,0 +1,54 @@
+[package]
+name = "daneel-poster"
+version = "0.1.0"
+edition = "2021"
+authors = ["Louis C. Tavares <rex@royalbit.ca>"]
+description = "Automated social media poster for DANEEL blog content"
+license = "LicenseRef-Proprietary"
+publish = false
+
+[lints.rust]
+unsafe_code = "forbid"
+
+[lints.clippy]
+pedantic = { level = "warn", priority = -1 }
+all = { level = "warn", priority = -1 }
+
+[dependencies]
+# CLI
+clap = { version = "4", features = ["derive"] }
+
+# Async runtime
+tokio = { version = "1", features = ["full"] }
+
+# HTTP client
+reqwest = { version = "0.12", features = ["json"] }
+
+# Serialization
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+serde_yaml = "0.9"
+
+# Error handling
+anyhow = "1"
+thiserror = "2"
+
+# Utilities
+chrono = { version = "0.4", features = ["serde"] }
+dirs = "6"
+open = "5"
+url = "2"
+urlencoding = "2"
+
+# OAuth for X
+hmac = "0.12"
+sha2 = "0.10"
+base64 = "0.22"
+rand = "0.9"
+
+[profile.release]
+lto = true
+strip = true
+
+[dev-dependencies]
+cargo-husky = { version = "1", default-features = false, features = ["user-hooks"] }

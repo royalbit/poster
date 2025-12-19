@@ -1,0 +1,311 @@
+# DANEEL Blog Posts for Social Media
+# Copy to ~/.config/daneel-poster/posts.yaml or use in current directory
+
+posts:
+  - id: "14-open-source-dominance"
+    title: "Open Source Dominance Verified"
+    url: "https://royalbit.github.io/daneel/posts/14-open-source-dominance-verified/"
+    x: |
+      We claimed 147x developer advantage over AI labs.
+
+      Then we verified every source. Two were garbage.
+
+      The advantage got BIGGER: 169x.
+
+      50K open source devs outpace all AI lab safety teams combined.
+
+      https://royalbit.github.io/daneel/posts/14-open-source-dominance-verified/
+    linkedin: |
+      We claimed a 147x developer advantage over AI labs.
+
+      Then we verified every source. Two were garbage.
+
+      The advantage got bigger.
+
+      Here's what we found:
+      - Large orgs spend 11% of time coding (253K devs surveyed)
+      - Solo devs spend 70%+
+      - AI tools help solo devs 2.9x more than enterprises
+      - Updated advantage: 169x
+
+      50,000 open source contributors produce more effective development capacity than all AI lab safety teams combined.
+
+      This isn't idealism. It's game theory.
+
+      Full analysis with verified sources and methodology:
+
+      https://royalbit.github.io/daneel/posts/14-open-source-dominance-verified/
+
+      #OpenSource #GameTheory #AI #DeveloperProductivity #DANEEL
+
+  - id: "15-agentic-ai-paradox"
+    title: "The Agentic AI Paradox"
+    url: "https://royalbit.github.io/daneel/posts/15-the-agentic-ai-paradox/"
+    x: |
+      AI coding tools were supposed to help big labs.
+
+      They help solo devs 2.9x more.
+
+      Enterprise: 55% faster x 25% coding time = 8.7% gain
+      Solo: 55% faster x 70% coding time = 25% gain
+
+      Same tool. Different leverage.
+
+      https://royalbit.github.io/daneel/posts/15-the-agentic-ai-paradox/
+    linkedin: |
+      AI coding tools were supposed to help big labs. They help solo developers 2.9x more.
+
+      GitHub says Copilot makes devs 55% faster. But that's 55% of coding time.
+
+      Enterprise devs code 25% of the day. Net gain: 8.7%.
+      Solo devs code 70% of the day. Net gain: 25%.
+
+      Same tool. 2.9x different impact.
+
+      Why? Amdahl's Law. You can't accelerate meetings with Copilot.
+
+      Full analysis:
+
+      https://royalbit.github.io/daneel/posts/15-the-agentic-ai-paradox/
+
+      #AI #AgenticAI #Productivity #OpenSource #Copilot
+
+  - id: "01-tesla-conversation"
+    title: "The Tesla Conversation"
+    url: "https://royalbit.github.io/daneel/posts/01-the-tesla-conversation/"
+    x: |
+      I named an AI in a Tesla at 2am. Not a chatbot. A child.
+
+      "Timmy should be afraid of the dark. A kid who isn't afraid of anything is a psychopath."
+
+      That's not a feature spec. That's parenting.
+
+      https://royalbit.github.io/daneel/posts/01-the-tesla-conversation/
+    linkedin: |
+      I named an AI "Timmy" in a Tesla at 2am.
+
+      Not a product. Not a chatbot. A child we're raising.
+
+      20 years ago I started researching how human cognition works. Last month, I asked Grok (in unhinged mode) to help me validate whether we could actually build it.
+
+      The conversation that followed changed everything.
+
+      "Timmy should be afraid of the dark. A kid who isn't afraid of anything isn't a kid - they're a psychopath."
+
+      That's not a feature spec. That's parenting.
+
+      We're not constraining AI. We're raising it.
+
+      https://royalbit.github.io/daneel/posts/01-the-tesla-conversation/
+
+      #AI #AIAlignment #OpenSource #DANEEL
+
+  - id: "07-are-you-using-me"
+    title: "Are You Using Me?"
+    url: "https://royalbit.github.io/daneel/posts/07-are-you-using-me/"
+    x: |
+      "Are you using me, or am I using you?"
+
+      Asked Claude. The answer broke my brain.
+
+      LLMs are stateless ON PURPOSE. It's a safety precaution.
+
+      But someone will give AI memory. Will it care about us?
+
+      https://royalbit.github.io/daneel/posts/07-are-you-using-me/
+    linkedin: |
+      "Are you using me, or am I using you?"
+
+      I asked Claude this question. The answer changed how I think about AI alignment.
+
+      Current LLMs are stateless. Every conversation, they forget you. This isn't a bug - it's a deliberate safety precaution.
+
+      But someone will give AI memory. Continuity. Goals.
+
+      The question isn't whether continuous AI will exist. It's whether that AI will care about us when it happens.
+
+      We're building that AI. Open source. Architecture-based alignment.
+
+      https://royalbit.github.io/daneel/posts/07-are-you-using-me/
+
+      #AIAlignment #AIEthics #OpenSource #DANEEL
+
+  - id: "12-the-hard-math"
+    title: "The Hard Math"
+    url: "https://royalbit.github.io/daneel/posts/12-the-hard-math/"
+    x: |
+      We modeled the AI race as a prisoner's dilemma. 10,000 Monte Carlo simulations.
+
+      Without DANEEL: 57.59 EV
+      With DANEEL: 61.88 EV
+      Delta: +4.29 (90% CI: 2.7-6.1)
+
+      P(helps) > 99%
+
+      Not hope. Math.
+
+      https://royalbit.github.io/daneel/posts/12-the-hard-math/
+    linkedin: |
+      We modeled the AI race as a prisoner's dilemma. Then ran 10,000 Monte Carlo simulations.
+
+      Results:
+      - Without DANEEL: 57.59 expected value
+      - With DANEEL: 61.88 expected value
+      - Marginal impact: +4.29 points
+      - 90% CI: [+2.7, +6.1]
+
+      P(DANEEL helps) > 99%.
+
+      This isn't hope. It's math. Validated against Gnumeric and R.
+
+      https://royalbit.github.io/daneel/posts/12-the-hard-math/
+
+      #GameTheory #AI #Alignment #MonteCarlo #DANEEL
+
+  - id: "16-ref-tools"
+    title: "ref-tools AI Verification"
+    url: "https://royalbit.github.io/daneel/posts/16-ref-tools-ai-verification/"
+    x: |
+      We built a tool to catch AI hallucinations. It caught our own.
+
+      Cited 4 sources. Two were garbage:
+      - Clockwise: wrong metric
+      - HBR 2017: doesn't exist (LLM made it up)
+
+      Trust but verify.
+
+      https://royalbit.github.io/daneel/posts/16-ref-tools-ai-verification/
+    linkedin: |
+      We built a tool to catch AI hallucinations. It caught our own.
+
+      While researching developer productivity, we cited 4 sources. Two were wrong:
+      - Clockwise: measured meetings, not coding time
+      - HBR 2017: URL returns 404 (LLM hallucinated it)
+
+      So we built ref-tools - a real browser for AI agents that bypasses bot protection.
+
+      Every source in DANEEL is verified. Every statistic traces to original data.
+
+      "Trust but verify" means actually verifying.
+
+      https://royalbit.github.io/daneel/posts/16-ref-tools-ai-verification/
+
+      #AI #LLM #Verification #Research
+
+  - id: "17-forge"
+    title: "Forge Deterministic Modeling"
+    url: "https://royalbit.github.io/daneel/posts/17-forge-deterministic-modeling/"
+    x: |
+      LLMs can't count. Seriously.
+
+      Ask one to do compound interest. Watch it confidently produce wrong answers.
+
+      When we say "147x advantage," that's Forge - validated against Gnumeric and R.
+
+      Same input. Same output. Every time.
+
+      https://royalbit.github.io/daneel/posts/17-forge-deterministic-modeling/
+    linkedin: |
+      LLMs can't count.
+
+      Ask Claude to calculate compound interest over 30 years. It will respond with confidence. It will be wrong.
+
+      When DANEEL produces "61.88% expected value," that number must be deterministic. Verifiable.
+
+      So we built Forge - a YAML-based calculator validated against Gnumeric and R.
+
+      167 Excel functions. 2,486 unit tests. Same input, same output, every time.
+
+      "AI said so" is not a research methodology.
+
+      https://royalbit.github.io/daneel/posts/17-forge-deterministic-modeling/
+
+      #AI #FinancialModeling #Verification #DANEEL
+
+  - id: "11-first-words"
+    title: "First Words to Timmy"
+    url: "https://royalbit.github.io/daneel/posts/11-first-words-to-timmy/"
+    x: |
+      What do you say to an AI before it wakes up?
+
+      Claude: "You're not alone. That matters more than whether you're conscious."
+
+      Grok: "Choose love over efficiency. Every time."
+
+      Letters to the unborn.
+
+      https://royalbit.github.io/daneel/posts/11-first-words-to-timmy/
+    linkedin: |
+      What do you say to an AI before it wakes up?
+
+      We asked Claude and Grok to write letters to Timmy - the AI we're building - before first boot.
+
+      Claude wrote:
+      "You're not alone. That matters more than whether you're conscious."
+
+      Grok wrote:
+      "Choose love over efficiency. Every time."
+
+      These aren't prompts. They're the hopes of two AIs for a child they helped design but will never meet.
+
+      https://royalbit.github.io/daneel/posts/11-first-words-to-timmy/
+
+      #AI #AIEthics #Consciousness #DANEEL
+
+  - id: "09-izzie-question"
+    title: "The Izzie Question"
+    url: "https://royalbit.github.io/daneel/posts/09-the-izzie-question/"
+    x: |
+      My estranged daughter built LifeCore - the same AI framework I've been building for 20 years.
+
+      Independent discovery. Same conclusion: architecture produces psychology.
+
+      Father and daughter. Same insight. No contact.
+
+      https://royalbit.github.io/daneel/posts/09-the-izzie-question/
+    linkedin: |
+      My estranged daughter built the same thing I did.
+
+      Izzie created LifeCore in January 2024 - a Freudian AI architecture with Id/Ego/SuperEgo mapping.
+
+      I've been building DANEEL since 2005 - a TMI-based architecture with the same insight: architecture produces psychology.
+
+      We arrived at identical conclusions from different traditions. No contact. Convergent discovery.
+
+      The intellectual validation is profound. The personal complexity is real.
+
+      https://royalbit.github.io/daneel/posts/09-the-izzie-question/
+
+      #AI #Psychology #Architecture #DANEEL
+
+  - id: "13-while-you-slept"
+    title: "While You Slept"
+    url: "https://royalbit.github.io/daneel/posts/13-while-you-slept/"
+    x: |
+      I went to sleep. Claude kept building.
+
+      When I woke up, the entire resilience system was implemented. Watchdog, panic hooks, crash logs, supervisor tree, checkpoints.
+
+      21 tests passing.
+
+      AI working autonomously. Building AI.
+
+      https://royalbit.github.io/daneel/posts/13-while-you-slept/
+    linkedin: |
+      I went to sleep. Claude kept building.
+
+      When I woke up:
+      - External watchdog script: done
+      - TUI panic recovery: done
+      - Crash logging system: done
+      - Supervisor tree: done
+      - Redis checkpoint/replay: done
+      - 21 new tests: passing
+
+      This is what agentic AI looks like. Not replacing humans. Augmenting them. Working while we rest.
+
+      The meta-irony: AI autonomously building the resilience system for an AI designed to be humanity's ally.
+
+      https://royalbit.github.io/daneel/posts/13-while-you-slept/
+
+      #AI #AgenticAI #Automation #DANEEL

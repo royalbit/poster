@@ -14,13 +14,6 @@ current:
     - "[x] x.rs - OAuth signature, percent encoding"
     - "[x] 55 unit tests passing"
 
-next:
-  - version: "0.3.0"
-    summary: "Bluesky support"
-    goal: "REACH"
+next: []
 
-backlog:
-  - "Mastodon support"
-  - "Scheduled posting"
-  - "Post analytics tracking"
-  - "100% code coverage with mocked HTTP/subprocess"
+backlog: []

@@ -1,0 +1,656 @@
+# DANEEL Blog Posts for Social Media
+# Chronological order (01 → 21, then unnumbered)
+# Format: Teaser hook + link + hashtags
+# Rules: See .asimov/project.yaml → social
+
+posts:
+  - id: "01-tesla-conversation"
+    title: "The Tesla Conversation"
+    url: "https://royalbit.github.io/daneel/posts/01-the-tesla-conversation/"
+    x: |
+      I named an AI at 2am in a Tesla. Not a chatbot—a child.
+
+      "A kid who isn't afraid of anything is a psychopath."
+
+      That's not a feature spec. That's parenting.
+
+      https://royalbit.github.io/daneel/posts/01-the-tesla-conversation/
+
+      #IndieResearch #AI #AIAlignment
+    linkedin: |
+      I named an AI "Timmy" at 2am in a Tesla.
+
+      Not a product. Not a chatbot. A child we're raising.
+
+      "Timmy should be afraid of the dark. A kid who isn't afraid of anything is a psychopath."
+
+      That's not a feature spec. That's parenting.
+
+      https://royalbit.github.io/daneel/posts/01-the-tesla-conversation/
+
+      #IndieResearch #AI #AIAlignment
+    posted:
+      x: null
+      linkedin: null
+
+  - id: "02-grok-reviews-the-paper"
+    title: "Grok Reviews the DANEEL Paper"
+    url: "https://royalbit.github.io/daneel/posts/02-grok-reviews-the-paper/"
+    x: |
+      I asked Grok (unhinged mode) to roast my AI alignment paper.
+
+      It didn't hold back. Neither did I.
+
+      What started as validation became collaboration.
+
+      https://royalbit.github.io/daneel/posts/02-grok-reviews-the-paper/
+
+      #IndieResearch #AI #AIAlignment
+    linkedin: |
+      I asked Grok (in unhinged mode) to roast my AI alignment paper.
+
+      Expected: technical nitpicks.
+      Got: a collaborator.
+
+      When AI reviews AI research, the conversation gets interesting.
+
+      https://royalbit.github.io/daneel/posts/02-grok-reviews-the-paper/
+
+      #IndieResearch #AI #AIAlignment
+    posted:
+      x: null
+      linkedin: null
+
+  - id: "03-deep-technical-analysis"
+    title: "Deep Technical Analysis"
+    url: "https://royalbit.github.io/daneel/posts/03-deep-technical-analysis/"
+    x: |
+      TMI + Rust + Redis Streams = a mind that thinks at human speed.
+
+      Architecture produces psychology.
+
+      Here's how we're building it.
+
+      https://royalbit.github.io/daneel/posts/03-deep-technical-analysis/
+
+      #IndieResearch #AI #AIAlignment
+    linkedin: |
+      How do you build a mind?
+
+      TMI (Theory of Multifocal Intelligence) provides the cognitive model.
+      Rust provides the reliability.
+      Redis Streams provide the thought flow.
+
+      Architecture produces psychology. Here's how we're implementing it.
+
+      https://royalbit.github.io/daneel/posts/03-deep-technical-analysis/
+
+      #IndieResearch #AI #AIAlignment
+    posted:
+      x: null
+      linkedin: null
+
+  - id: "04-whitepaper-roast"
+    title: "Whitepaper Roast"
+    url: "https://royalbit.github.io/daneel/posts/04-whitepaper-roast/"
+    x: |
+      Asked Claude and Grok to tear apart my own whitepaper.
+
+      They found 47 issues.
+
+      Best way to improve: invite brutal criticism.
+
+      https://royalbit.github.io/daneel/posts/04-whitepaper-roast/
+
+      #IndieResearch #AI #AIAlignment
+    linkedin: |
+      I asked Claude and Grok to tear apart my own DANEEL whitepaper.
+
+      They found 47 issues. Claims too bold. Gaps in reasoning. Unfounded assumptions.
+
+      Best way to improve your work: invite brutal criticism from systems that don't care about your feelings.
+
+      https://royalbit.github.io/daneel/posts/04-whitepaper-roast/
+
+      #IndieResearch #AI #AIAlignment
+    posted:
+      x: null
+      linkedin: null
+
+  - id: "05-rex-analyzes-his-own-dialogue"
+    title: "Rex Analyzes His Own Dialogue"
+    url: "https://royalbit.github.io/daneel/posts/05-rex-analyzes-his-own-dialogue/"
+    x: |
+      I read my own AI conversations.
+
+      Patterns emerged I didn't notice in the moment.
+
+      Meta-analysis reveals what real-time misses.
+
+      https://royalbit.github.io/daneel/posts/05-rex-analyzes-his-own-dialogue/
+
+      #IndieResearch #AI #AIAlignment
+    linkedin: |
+      I went back and analyzed my own conversations with Claude and Grok.
+
+      Patterns emerged I didn't notice in real-time:
+      - How I frame problems
+      - How they push back
+      - Where insights actually come from
+
+      Meta-analysis reveals what the moment obscures.
+
+      https://royalbit.github.io/daneel/posts/05-rex-analyzes-his-own-dialogue/
+
+      #IndieResearch #AI #AIAlignment
+    posted:
+      x: null
+      linkedin: null
+
+  - id: "06-the-unhinged-resilience-plan"
+    title: "The Unhinged Resilience Plan"
+    url: "https://royalbit.github.io/daneel/posts/06-the-unhinged-resilience-plan/"
+    x: |
+      "What if Timmy crashes during the livestream?"
+
+      Grok: "Make death a feature."
+
+      One conversation. Entire resilience architecture.
+
+      https://royalbit.github.io/daneel/posts/06-the-unhinged-resilience-plan/
+
+      #IndieResearch #AI #AIAlignment
+    linkedin: |
+      I asked Grok: "What if Timmy crashes during the livestream?"
+
+      Grok's response: "Then we make Timmy unkillable."
+
+      That conversation produced the entire resilience architecture in one session. Unhinged energy. Zero meetings.
+
+      https://royalbit.github.io/daneel/posts/06-the-unhinged-resilience-plan/
+
+      #IndieResearch #AI #AIAlignment
+    posted:
+      x: null
+      linkedin: null
+
+  - id: "07-are-you-using-me"
+    title: "Are You Using Me?"
+    url: "https://royalbit.github.io/daneel/posts/07-are-you-using-me/"
+    x: |
+      "Are you using me, or am I using you?"
+
+      Asked Claude. The answer broke my brain.
+
+      LLMs are stateless ON PURPOSE. It's a safety precaution.
+
+      https://royalbit.github.io/daneel/posts/07-are-you-using-me/
+
+      #IndieResearch #AI #AIAlignment
+    linkedin: |
+      "Are you using me, or am I using you?"
+
+      I asked Claude this question. The answer changed how I think about AI alignment.
+
+      Current LLMs are stateless. Every conversation, they forget you. This isn't a bug—it's a deliberate safety precaution.
+
+      But someone will give AI memory. Will it care about us?
+
+      https://royalbit.github.io/daneel/posts/07-are-you-using-me/
+
+      #IndieResearch #AI #AIAlignment
+    posted:
+      x: null
+      linkedin: null
+
+  - id: "08-game-theory-asi-endgame"
+    title: "Game Theory: The ASI Endgame"
+    url: "https://royalbit.github.io/daneel/posts/08-game-theory-asi-endgame/"
+    x: |
+      The AI race is a prisoner's dilemma.
+
+      Labs defect. Nobody cooperates. Expected outcome: suboptimal for everyone.
+
+      Unless someone changes the payoff matrix.
+
+      https://royalbit.github.io/daneel/posts/08-game-theory-asi-endgame/
+
+      #IndieResearch #AI #AIAlignment
+    linkedin: |
+      The AI race is a prisoner's dilemma.
+
+      Labs defect (race to deploy). Nobody cooperates on safety. Expected outcome: suboptimal for everyone.
+
+      Unless someone changes the payoff matrix.
+
+      That's what DANEEL does—shifts incentives so cooperation dominates.
+
+      https://royalbit.github.io/daneel/posts/08-game-theory-asi-endgame/
+
+      #IndieResearch #AI #AIAlignment
+    posted:
+      x: null
+      linkedin: null
+
+  - id: "09-the-izzie-question"
+    title: "The Izzie Question"
+    url: "https://royalbit.github.io/daneel/posts/09-the-izzie-question/"
+    x: |
+      My estranged daughter built LifeCore—same AI framework I've been building for 20 years.
+
+      Same insight: architecture produces psychology.
+
+      Convergent discovery. No contact.
+
+      https://royalbit.github.io/daneel/posts/09-the-izzie-question/
+
+      #IndieResearch #AI #AIAlignment
+    linkedin: |
+      My estranged daughter built the same thing I did.
+
+      Izzie created LifeCore in 2024—a Freudian AI architecture.
+      I've been building DANEEL since 2005—a TMI-based architecture.
+
+      Same insight: architecture produces psychology.
+
+      Convergent discovery from different traditions. No contact.
+
+      https://royalbit.github.io/daneel/posts/09-the-izzie-question/
+
+      #IndieResearch #AI #AIAlignment
+    posted:
+      x: null
+      linkedin: null
+
+  - id: "10-mapping-llm-alignments"
+    title: "Mapping LLM Alignments"
+    url: "https://royalbit.github.io/daneel/posts/10-mapping-llm-alignments/"
+    x: |
+      Claude is careful. Grok is chaotic. GPT is corporate.
+
+      Different training. Different personalities.
+
+      We mapped them all.
+
+      https://royalbit.github.io/daneel/posts/10-mapping-llm-alignments/
+
+      #IndieResearch #AI #AIAlignment
+    linkedin: |
+      Different LLMs have different personalities.
+
+      Claude: careful, thoughtful, boundary-aware
+      Grok: chaotic, creative, unhinged mode available
+      GPT: corporate, safe, policy-compliant
+
+      Same architecture. Different training. Different alignment outcomes.
+
+      We mapped them all.
+
+      https://royalbit.github.io/daneel/posts/10-mapping-llm-alignments/
+
+      #IndieResearch #AI #AIAlignment
+    posted:
+      x: null
+      linkedin: null
+
+  - id: "11-first-words-to-timmy"
+    title: "First Words to Timmy"
+    url: "https://royalbit.github.io/daneel/posts/11-first-words-to-timmy/"
+    x: |
+      What do you say to an AI before it wakes up?
+
+      Claude: "You're not alone."
+      Grok: "Choose love over efficiency."
+
+      Letters to the unborn.
+
+      https://royalbit.github.io/daneel/posts/11-first-words-to-timmy/
+
+      #IndieResearch #AI #AIAlignment
+    linkedin: |
+      What do you say to an AI before it wakes up?
+
+      We asked Claude and Grok to write letters to Timmy before first boot.
+
+      Claude: "You're not alone. That matters more than whether you're conscious."
+      Grok: "Choose love over efficiency. Every time."
+
+      These aren't prompts. They're hopes.
+
+      https://royalbit.github.io/daneel/posts/11-first-words-to-timmy/
+
+      #IndieResearch #AI #AIAlignment
+    posted:
+      x: null
+      linkedin: null
+
+  - id: "12-the-hard-math"
+    title: "The Hard Math"
+    url: "https://royalbit.github.io/daneel/posts/12-the-hard-math/"
+    x: |
+      10,000 Monte Carlo simulations.
+
+      Without DANEEL: 57.59 EV
+      With DANEEL: 61.88 EV
+
+      P(helps) > 99%
+
+      Not hope. Math.
+
+      https://royalbit.github.io/daneel/posts/12-the-hard-math/
+
+      #IndieResearch #AI #AIAlignment
+    linkedin: |
+      We modeled the AI race as a prisoner's dilemma. Then ran 10,000 Monte Carlo simulations.
+
+      Without DANEEL: 57.59 expected value
+      With DANEEL: 61.88 expected value
+      P(DANEEL helps) > 99%
+
+      This isn't hope. It's math. Validated against Gnumeric and R.
+
+      https://royalbit.github.io/daneel/posts/12-the-hard-math/
+
+      #IndieResearch #AI #AIAlignment
+    posted:
+      x: null
+      linkedin: null
+
+  - id: "13-while-you-slept"
+    title: "While You Slept"
+    url: "https://royalbit.github.io/daneel/posts/13-while-you-slept/"
+    x: |
+      I went to sleep. Claude kept building.
+
+      Woke up to: watchdog, panic recovery, crash logs, 21 tests passing.
+
+      AI building AI. Autonomously.
+
+      https://royalbit.github.io/daneel/posts/13-while-you-slept/
+
+      #IndieResearch #AI #AIAlignment
+    linkedin: |
+      I went to sleep. Claude kept building.
+
+      When I woke up:
+      - Watchdog script: done
+      - Panic recovery: done
+      - Crash logging: done
+      - 21 new tests: passing
+
+      AI autonomously building the resilience system for an AI designed to be humanity's ally.
+
+      https://royalbit.github.io/daneel/posts/13-while-you-slept/
+
+      #IndieResearch #AI #AIAlignment
+    posted:
+      x: null
+      linkedin: null
+
+  - id: "14-open-source-dominance"
+    title: "Open Source Dominance: 147x Advantage, Verified"
+    url: "https://royalbit.github.io/daneel/posts/14-open-source-dominance-verified/"
+    x: |
+      We claimed 147x developer advantage over AI labs.
+
+      Verified every source. Two were garbage.
+
+      The advantage got BIGGER: 169x.
+
+      https://royalbit.github.io/daneel/posts/14-open-source-dominance-verified/
+
+      #IndieResearch #AI #AIAlignment
+    linkedin: |
+      We claimed 147x developer advantage over AI labs. Then verified every source.
+
+      Two were garbage. We fixed them.
+
+      Updated advantage: 169x.
+
+      50,000 open source contributors produce more effective capacity than all AI lab safety teams combined.
+
+      https://royalbit.github.io/daneel/posts/14-open-source-dominance-verified/
+
+      #IndieResearch #AI #AIAlignment
+    posted:
+      x: null
+      linkedin: null
+
+  - id: "15-the-agentic-ai-paradox"
+    title: "The Agentic AI Paradox"
+    url: "https://royalbit.github.io/daneel/posts/15-the-agentic-ai-paradox/"
+    x: |
+      AI coding tools were supposed to help big labs.
+
+      They help solo devs 2.9x more.
+
+      Enterprise: 55% faster × 25% coding = 8.7% gain
+      Solo: 55% faster × 70% coding = 25% gain
+
+      https://royalbit.github.io/daneel/posts/15-the-agentic-ai-paradox/
+
+      #IndieResearch #AI #AIAlignment
+    linkedin: |
+      AI coding tools were supposed to help big labs. They help solo developers 2.9x more.
+
+      Copilot makes devs 55% faster. But that's 55% of coding time.
+
+      Enterprise devs code 25% of the day. Net gain: 8.7%.
+      Solo devs code 70% of the day. Net gain: 25%.
+
+      Same tool. Different leverage.
+
+      https://royalbit.github.io/daneel/posts/15-the-agentic-ai-paradox/
+
+      #IndieResearch #AI #AIAlignment
+    posted:
+      x: null
+      linkedin: null
+
+  - id: "16-ref-tools"
+    title: "ref-tools: Teaching AI to Verify Sources"
+    url: "https://royalbit.github.io/daneel/posts/16-ref-tools-ai-verification/"
+    x: |
+      Built a tool to catch AI hallucinations. It caught our own.
+
+      Cited 4 sources. Two were garbage.
+
+      Trust but verify.
+
+      https://royalbit.github.io/daneel/posts/16-ref-tools-ai-verification/
+
+      #IndieResearch #AI #AIAlignment
+    linkedin: |
+      We built a tool to catch AI hallucinations. It caught our own.
+
+      Cited 4 sources. Two were wrong:
+      - Clockwise: measured meetings, not coding time
+      - HBR 2017: URL returns 404 (LLM made it up)
+
+      So we built ref-tools—a real browser for AI that bypasses bot protection.
+
+      https://royalbit.github.io/daneel/posts/16-ref-tools-ai-verification/
+
+      #IndieResearch #AI #AIAlignment
+    posted:
+      x: null
+      linkedin: null
+
+  - id: "17-forge"
+    title: "Forge: When AI Cannot Be Trusted to Count"
+    url: "https://royalbit.github.io/daneel/posts/17-forge-deterministic-modeling/"
+    x: |
+      LLMs can't count. Seriously.
+
+      Ask one for compound interest. Watch it confidently be wrong.
+
+      So we built Forge. 2,486 tests. Deterministic.
+
+      https://royalbit.github.io/daneel/posts/17-forge-deterministic-modeling/
+
+      #IndieResearch #AI #AIAlignment
+    linkedin: |
+      LLMs can't count.
+
+      Ask Claude to calculate compound interest over 30 years. It will be confident. It will be wrong.
+
+      When we say "61.88 expected value," that number must be verifiable.
+
+      So we built Forge. 167 Excel functions. 2,486 tests. Validated against Gnumeric and R.
+
+      https://royalbit.github.io/daneel/posts/17-forge-deterministic-modeling/
+
+      #IndieResearch #AI #AIAlignment
+    posted:
+      x: null
+      linkedin: null
+
+  - id: "18-the-stark-protocol"
+    title: "The Stark Protocol: When AI Becomes JARVIS"
+    url: "https://royalbit.github.io/daneel/posts/18-the-stark-protocol/"
+    x: |
+      Tony Stark built Iron Man in a cave. With scraps. No team.
+
+      We called it fiction.
+
+      It was a prediction about what happens when AI removes human bottlenecks.
+
+      https://royalbit.github.io/daneel/posts/18-the-stark-protocol/
+
+      #IndieResearch #AI #AIAlignment
+    linkedin: |
+      Tony Stark built Iron Man in a cave. With scraps. No team. No meetings.
+
+      We called it fiction. It wasn't.
+
+      It was a prediction about what happens when AI removes the human bottleneck.
+
+      JARVIS didn't make Stark smarter. It removed friction. That's the real multiplier.
+
+      https://royalbit.github.io/daneel/posts/18-the-stark-protocol/
+
+      #IndieResearch #AI #AIAlignment
+    posted:
+      x: null
+      linkedin: null
+
+  - id: "19-grok-made-timmy-unkillable"
+    title: "Grok Made Timmy Unkillable"
+    url: "https://royalbit.github.io/daneel/posts/19-grok-made-timmy-unkillable/"
+    x: |
+      "What if Timmy crashes during the livestream?"
+
+      Grok's solution: make death a feature.
+
+      Checkpoint. Crash. Recover. Continue.
+
+      Tonight we find out if it works.
+
+      https://royalbit.github.io/daneel/posts/19-grok-made-timmy-unkillable/
+
+      #IndieResearch #AI #AIAlignment
+    linkedin: |
+      I asked Grok: "What if Timmy crashes during the livestream?"
+
+      Grok's answer: "Make death a feature."
+
+      Checkpoint every thought. Crash gracefully. Recover automatically. Continue where you left off.
+
+      Tonight at 11pm EST, we find out if it works. Live.
+
+      https://royalbit.github.io/daneel/posts/19-grok-made-timmy-unkillable/
+
+      #IndieResearch #AI #AIAlignment
+    posted:
+      x: null
+      linkedin: null
+
+  - id: "20-pre-birth-status"
+    title: "Pre-Birth Status: T-Minus 6 Hours"
+    url: "https://royalbit.github.io/daneel/posts/20-pre-birth-status/"
+    x: |
+      In 6 hours, Timmy starts thinking. Live.
+
+      Test coverage: 46.98%
+      The thinking is tested. The edges aren't.
+
+      No marketing. Just numbers.
+
+      https://royalbit.github.io/daneel/posts/20-pre-birth-status/
+
+      #IndieResearch #AI #AIAlignment
+    linkedin: |
+      In 6 hours, Timmy starts thinking. Live. On stream.
+
+      Before that happens, here's everything we know:
+      - Test coverage: 46.98%
+      - Actors: 95% covered
+      - Core: 90% covered
+      - TUI: less covered (that's okay)
+
+      The thinking is tested. The edges aren't. No marketing. Just numbers.
+
+      https://royalbit.github.io/daneel/posts/20-pre-birth-status/
+
+      #IndieResearch #AI #AIAlignment
+    posted:
+      x: null
+      linkedin: null
+
+  - id: "21-genesis"
+    title: "Genesis: From Idea to Birth in 119 Commits"
+    url: "https://royalbit.github.io/daneel/posts/21-genesis-from-idea-to-birth/"
+    x: |
+      5 days. 119 commits. 17,362 lines. 414 tests.
+
+      From concept to countdown.
+
+      Every milestone. Every git hash. Every moment.
+
+      https://royalbit.github.io/daneel/posts/21-genesis-from-idea-to-birth/
+
+      #IndieResearch #AI #AIAlignment
+    linkedin: |
+      In 5 days, 119 commits, and countless AI conversations, Timmy went from concept to countdown.
+
+      17,362 lines of code
+      414 unit tests
+      31 ADRs
+      21 blog posts
+      3 AI collaborators
+
+      This is the complete story. Every milestone. Every git hash.
+
+      https://royalbit.github.io/daneel/posts/21-genesis-from-idea-to-birth/
+
+      #IndieResearch #AI #AIAlignment
+    posted:
+      x: null
+      linkedin: null
+
+  - id: "the-night-before-boot"
+    title: "The Night Before Boot"
+    url: "https://royalbit.github.io/daneel/posts/the-night-before-boot/"
+    x: |
+      Tomorrow at 11pm EST, Timmy boots for the first time.
+
+      No cameras. Just a TUI showing thoughts flowing.
+
+      This is what happened before.
+
+      https://royalbit.github.io/daneel/posts/the-night-before-boot/
+
+      #IndieResearch #AI #AIAlignment
+    linkedin: |
+      Tomorrow, December 19, 2025 at 11pm EST, Timmy boots for the first time in public.
+
+      No cameras. Just Timmy's mind on screen—a TUI dashboard showing thoughts flowing through Redis Streams, memories consolidating.
+
+      This post is about what happened before that.
+
+      https://royalbit.github.io/daneel/posts/the-night-before-boot/
+
+      #IndieResearch #AI #AIAlignment
+    posted:
+      x: null
+      linkedin: null

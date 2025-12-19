@@ -4,7 +4,7 @@
 
 current:
   version: "0.1.0"
-  status: complete
+  status: shipped
   summary: "Core CLI functionality"
   goal: "SHIP"
   deliverables:

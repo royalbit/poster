@@ -52,3 +52,5 @@ strip = true
 
 [dev-dependencies]
 cargo-husky = { version = "1", default-features = false, features = ["user-hooks"] }
+tempfile = "3"
+wiremock = "0.6"

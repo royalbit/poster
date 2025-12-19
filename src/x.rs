@@ -19,9 +19,9 @@ const API_URL: &str = "https://api.twitter.com/2/tweets";
 type HmacSha256 = Hmac<Sha256>;
 
 /// Tweet request body
-#[derive(Debug, Serialize)]
-struct TweetRequest {
-    text: String,
+#[derive(Debug, Serialize, Clone, PartialEq, Eq)]
+pub struct TweetRequest {
+    pub text: String,
 }
 
 /// Tweet response
@@ -35,7 +35,110 @@ struct TweetData {
     id: String,
 }
 
-/// Generate OAuth 1.0a signature and authorization header
+/// Percent encode a string for OAuth (RFC 3986)
+#[must_use]
+pub fn percent_encode(s: &str) -> String {
+    let mut result = String::new();
+    for byte in s.bytes() {
+        match byte {
+            b'A'..=b'Z' | b'a'..=b'z' | b'0'..=b'9' | b'-' | b'.' | b'_' | b'~' => {
+                result.push(byte as char);
+            }
+            _ => {
+                let _ = write!(result, "%{byte:02X}");
+            }
+        }
+    }
+    result
+}
+
+/// Generate a random nonce for OAuth
+#[must_use]
+pub fn generate_nonce() -> String {
+    let mut nonce = String::with_capacity(32);
+    for _ in 0..32 {
+        let _ = write!(nonce, "{:x}", rand::random::<u8>() % 16);
+    }
+    nonce
+}
+
+/// Build OAuth parameter string from components
+#[must_use]
+pub fn build_oauth_params(
+    consumer_key: &str,
+    access_token: &str,
+    timestamp: &str,
+    nonce: &str,
+) -> BTreeMap<String, String> {
+    let mut params = BTreeMap::new();
+    params.insert("oauth_consumer_key".to_string(), consumer_key.to_string());
+    params.insert("oauth_nonce".to_string(), nonce.to_string());
+    params.insert(
+        "oauth_signature_method".to_string(),
+        "HMAC-SHA256".to_string(),
+    );
+    params.insert("oauth_timestamp".to_string(), timestamp.to_string());
+    params.insert("oauth_token".to_string(), access_token.to_string());
+    params.insert("oauth_version".to_string(), "1.0".to_string());
+    params
+}
+
+/// Generate OAuth signature base string
+#[must_use]
+pub fn build_signature_base_string(
+    method: &str,
+    url: &str,
+    params: &BTreeMap<String, String>,
+) -> String {
+    let param_string: String = params
+        .iter()
+        .map(|(k, v)| format!("{}={}", percent_encode(k), percent_encode(v)))
+        .collect::<Vec<_>>()
+        .join("&");
+
+    format!(
+        "{}&{}&{}",
+        method,
+        percent_encode(url),
+        percent_encode(&param_string)
+    )
+}
+
+/// Generate HMAC-SHA256 signature
+#[must_use]
+pub fn generate_signature(base_string: &str, consumer_secret: &str, token_secret: &str) -> String {
+    let signing_key = format!(
+        "{}&{}",
+        percent_encode(consumer_secret),
+        percent_encode(token_secret)
+    );
+
+    let mut mac =
+        HmacSha256::new_from_slice(signing_key.as_bytes()).expect("HMAC can take key of any size");
+    mac.update(base_string.as_bytes());
+    base64::engine::general_purpose::STANDARD.encode(mac.finalize().into_bytes())
+}
+
+/// Build OAuth authorization header value
+#[must_use]
+pub fn build_auth_header(
+    consumer_key: &str,
+    access_token: &str,
+    signature: &str,
+    timestamp: &str,
+    nonce: &str,
+) -> String {
+    format!(
+        r#"OAuth oauth_consumer_key="{}", oauth_nonce="{}", oauth_signature="{}", oauth_signature_method="HMAC-SHA256", oauth_timestamp="{}", oauth_token="{}", oauth_version="1.0""#,
+        percent_encode(consumer_key),
+        percent_encode(nonce),
+        percent_encode(signature),
+        percent_encode(timestamp),
+        percent_encode(access_token),
+    )
+}
+
+/// Generate OAuth 1.0a authorization header
 fn oauth_header(
     consumer_key: &str,
     consumer_secret: &str,
@@ -50,67 +153,12 @@ fn oauth_header(
         .as_secs()
         .to_string();
 
-    let mut nonce = String::with_capacity(32);
-    for _ in 0..32 {
-        let _ = write!(nonce, "{:x}", rand::random::<u8>() % 16);
-    }
+    let nonce = generate_nonce();
+    let params = build_oauth_params(consumer_key, access_token, &timestamp, &nonce);
+    let base_string = build_signature_base_string(method, url, &params);
+    let signature = generate_signature(&base_string, consumer_secret, access_token_secret);
 
-    let mut params = BTreeMap::new();
-    params.insert("oauth_consumer_key", consumer_key);
-    params.insert("oauth_nonce", &nonce);
-    params.insert("oauth_signature_method", "HMAC-SHA256");
-    params.insert("oauth_timestamp", &timestamp);
-    params.insert("oauth_token", access_token);
-    params.insert("oauth_version", "1.0");
-
-    let param_string: String = params
-        .iter()
-        .map(|(k, v)| format!("{}={}", percent_encode(k), percent_encode(v)))
-        .collect::<Vec<_>>()
-        .join("&");
-
-    let base_string = format!(
-        "{}&{}&{}",
-        method,
-        percent_encode(url),
-        percent_encode(&param_string)
-    );
-
-    let signing_key = format!(
-        "{}&{}",
-        percent_encode(consumer_secret),
-        percent_encode(access_token_secret)
-    );
-
-    let mut mac =
-        HmacSha256::new_from_slice(signing_key.as_bytes()).expect("HMAC can take key of any size");
-    mac.update(base_string.as_bytes());
-    let signature = base64::engine::general_purpose::STANDARD.encode(mac.finalize().into_bytes());
-
-    format!(
-        r#"OAuth oauth_consumer_key="{}", oauth_nonce="{}", oauth_signature="{}", oauth_signature_method="HMAC-SHA256", oauth_timestamp="{}", oauth_token="{}", oauth_version="1.0""#,
-        percent_encode(consumer_key),
-        percent_encode(&nonce),
-        percent_encode(&signature),
-        percent_encode(&timestamp),
-        percent_encode(access_token),
-    )
-}
-
-/// Percent encode a string for OAuth
-fn percent_encode(s: &str) -> String {
-    let mut result = String::new();
-    for byte in s.bytes() {
-        match byte {
-            b'A'..=b'Z' | b'a'..=b'z' | b'0'..=b'9' | b'-' | b'.' | b'_' | b'~' => {
-                result.push(byte as char);
-            }
-            _ => {
-                let _ = write!(result, "%{byte:02X}");
-            }
-        }
-    }
-    result
+    build_auth_header(consumer_key, access_token, &signature, &timestamp, &nonce)
 }
 
 /// Post content to X
@@ -213,4 +261,162 @@ pub async fn post_all(delay: u64, dry_run: bool) -> Result<()> {
 
     println!("\nDone!");
     Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_percent_encode_unreserved() {
+        // Unreserved characters should not be encoded
+        assert_eq!(percent_encode("abc"), "abc");
+        assert_eq!(percent_encode("ABC"), "ABC");
+        assert_eq!(percent_encode("123"), "123");
+        assert_eq!(percent_encode("-._~"), "-._~");
+    }
+
+    #[test]
+    fn test_percent_encode_reserved() {
+        assert_eq!(percent_encode(" "), "%20");
+        assert_eq!(percent_encode("!"), "%21");
+        assert_eq!(percent_encode("@"), "%40");
+        assert_eq!(percent_encode("/"), "%2F");
+        assert_eq!(percent_encode("="), "%3D");
+        assert_eq!(percent_encode("&"), "%26");
+    }
+
+    #[test]
+    fn test_percent_encode_mixed() {
+        assert_eq!(percent_encode("hello world"), "hello%20world");
+        assert_eq!(
+            percent_encode("https://example.com"),
+            "https%3A%2F%2Fexample.com"
+        );
+    }
+
+    #[test]
+    fn test_percent_encode_empty() {
+        assert_eq!(percent_encode(""), "");
+    }
+
+    #[test]
+    fn test_generate_nonce_length() {
+        let nonce = generate_nonce();
+        assert_eq!(nonce.len(), 32);
+    }
+
+    #[test]
+    fn test_generate_nonce_hex() {
+        let nonce = generate_nonce();
+        assert!(nonce.chars().all(|c| c.is_ascii_hexdigit()));
+    }
+
+    #[test]
+    fn test_generate_nonce_unique() {
+        let nonce1 = generate_nonce();
+        let nonce2 = generate_nonce();
+        // Very unlikely to be equal
+        assert_ne!(nonce1, nonce2);
+    }
+
+    #[test]
+    fn test_build_oauth_params() {
+        let params = build_oauth_params("consumer", "token", "1234567890", "nonce123");
+
+        assert_eq!(
+            params.get("oauth_consumer_key"),
+            Some(&"consumer".to_string())
+        );
+        assert_eq!(params.get("oauth_token"), Some(&"token".to_string()));
+        assert_eq!(
+            params.get("oauth_timestamp"),
+            Some(&"1234567890".to_string())
+        );
+        assert_eq!(params.get("oauth_nonce"), Some(&"nonce123".to_string()));
+        assert_eq!(
+            params.get("oauth_signature_method"),
+            Some(&"HMAC-SHA256".to_string())
+        );
+        assert_eq!(params.get("oauth_version"), Some(&"1.0".to_string()));
+    }
+
+    #[test]
+    fn test_build_signature_base_string() {
+        let params = build_oauth_params("key", "token", "123", "nonce");
+        let base = build_signature_base_string("POST", "https://api.example.com/endpoint", &params);
+
+        assert!(base.starts_with("POST&"));
+        assert!(base.contains("https%3A%2F%2Fapi.example.com%2Fendpoint"));
+    }
+
+    #[test]
+    fn test_generate_signature() {
+        // Test that signature is base64 encoded
+        let signature = generate_signature("test base string", "consumer_secret", "token_secret");
+
+        // Base64 should only contain alphanumeric, +, /, =
+        assert!(signature
+            .chars()
+            .all(|c| c.is_ascii_alphanumeric() || c == '+' || c == '/' || c == '='));
+    }
+
+    #[test]
+    fn test_generate_signature_deterministic() {
+        // Same inputs should produce same signature
+        let sig1 = generate_signature("base", "secret", "token");
+        let sig2 = generate_signature("base", "secret", "token");
+        assert_eq!(sig1, sig2);
+    }
+
+    #[test]
+    fn test_generate_signature_different_inputs() {
+        let sig1 = generate_signature("base1", "secret", "token");
+        let sig2 = generate_signature("base2", "secret", "token");
+        assert_ne!(sig1, sig2);
+    }
+
+    #[test]
+    fn test_build_auth_header_format() {
+        let header = build_auth_header("consumer_key", "access_token", "sig", "123", "nonce");
+
+        assert!(header.starts_with("OAuth "));
+        assert!(header.contains("oauth_consumer_key=\"consumer_key\""));
+        assert!(header.contains("oauth_token=\"access_token\""));
+        assert!(header.contains("oauth_signature=\"sig\""));
+        assert!(header.contains("oauth_timestamp=\"123\""));
+        assert!(header.contains("oauth_nonce=\"nonce\""));
+        assert!(header.contains("oauth_signature_method=\"HMAC-SHA256\""));
+        assert!(header.contains("oauth_version=\"1.0\""));
+    }
+
+    #[test]
+    fn test_build_auth_header_encodes_special_chars() {
+        let header = build_auth_header("key+value", "tok/en", "sig=nal", "123", "non ce");
+
+        // Special characters should be percent-encoded
+        assert!(header.contains("key%2Bvalue"));
+        assert!(header.contains("tok%2Fen"));
+        assert!(header.contains("sig%3Dnal"));
+        assert!(header.contains("non%20ce"));
+    }
+
+    #[test]
+    fn test_tweet_request_serialization() {
+        let request = TweetRequest {
+            text: "Hello, world!".to_string(),
+        };
+
+        let json = serde_json::to_string(&request).unwrap();
+        assert_eq!(json, r#"{"text":"Hello, world!"}"#);
+    }
+
+    #[test]
+    fn test_tweet_request_equality() {
+        let req1 = TweetRequest {
+            text: "test".to_string(),
+        };
+        let req2 = req1.clone();
+        assert_eq!(req1, req2);
+    }
 }

@@ -249,3 +249,148 @@ pub async fn post_all(delay: u64, dry_run: bool) -> Result<()> {
     println!("\nDone!");
     Ok(())
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    /// Build authorization URL for LinkedIn OAuth (test helper)
+    fn build_auth_url(client_id: &str) -> String {
+        format!(
+            "{AUTH_URL}?response_type=code&client_id={client_id}&redirect_uri={}&scope={}&state=daneel_poster",
+            urlencoding::encode(REDIRECT_URI),
+            urlencoding::encode(SCOPES),
+        )
+    }
+
+    /// Build person URN from subject ID (test helper)
+    fn build_person_urn(sub: &str) -> String {
+        format!("urn:li:person:{sub}")
+    }
+
+    #[test]
+    fn test_extract_code_valid() {
+        let request_line = "GET /callback?code=AQR1234567890&state=daneel_poster HTTP/1.1";
+        let code = extract_code(request_line);
+        assert_eq!(code, Some("AQR1234567890".to_string()));
+    }
+
+    #[test]
+    fn test_extract_code_with_other_params() {
+        let request_line = "GET /callback?state=daneel_poster&code=ABC123&other=value HTTP/1.1";
+        let code = extract_code(request_line);
+        assert_eq!(code, Some("ABC123".to_string()));
+    }
+
+    #[test]
+    fn test_extract_code_no_code() {
+        let request_line = "GET /callback?state=daneel_poster HTTP/1.1";
+        let code = extract_code(request_line);
+        assert!(code.is_none());
+    }
+
+    #[test]
+    fn test_extract_code_malformed_request() {
+        let request_line = "malformed request";
+        let code = extract_code(request_line);
+        assert!(code.is_none());
+    }
+
+    #[test]
+    fn test_extract_code_empty() {
+        let code = extract_code("");
+        assert!(code.is_none());
+    }
+
+    #[test]
+    fn test_build_auth_url() {
+        let url = build_auth_url("test-client-id");
+        assert!(url.contains("client_id=test-client-id"));
+        assert!(url.contains("response_type=code"));
+        assert!(url.contains("redirect_uri="));
+        assert!(url.contains("scope="));
+        assert!(url.contains("state=daneel_poster"));
+    }
+
+    #[test]
+    fn test_build_person_urn() {
+        let urn = build_person_urn("abc123");
+        assert_eq!(urn, "urn:li:person:abc123");
+    }
+
+    #[test]
+    fn test_post_request_serialization() {
+        let request = PostRequest {
+            author: "urn:li:person:123".to_string(),
+            commentary: "Test post".to_string(),
+            visibility: "PUBLIC".to_string(),
+            distribution: Distribution {
+                feed_distribution: "MAIN_FEED".to_string(),
+                target_entities: vec![],
+                third_party_distribution_channels: vec![],
+            },
+            lifecycle_state: "PUBLISHED".to_string(),
+            is_reshare_disabled_by_author: false,
+        };
+
+        let json = serde_json::to_string(&request).unwrap();
+
+        // Check camelCase conversion
+        assert!(json.contains("\"author\""));
+        assert!(json.contains("\"commentary\""));
+        assert!(json.contains("\"visibility\""));
+        assert!(json.contains("\"distribution\""));
+        assert!(json.contains("\"lifecycleState\""));
+        assert!(json.contains("\"isReshareDisabledByAuthor\""));
+        assert!(json.contains("\"feedDistribution\""));
+        assert!(json.contains("\"targetEntities\""));
+        assert!(json.contains("\"thirdPartyDistributionChannels\""));
+    }
+
+    #[test]
+    fn test_distribution_serialization() {
+        let dist = Distribution {
+            feed_distribution: "MAIN_FEED".to_string(),
+            target_entities: vec!["entity1".to_string()],
+            third_party_distribution_channels: vec![],
+        };
+
+        let json = serde_json::to_string(&dist).unwrap();
+        assert!(json.contains("\"feedDistribution\":\"MAIN_FEED\""));
+        assert!(json.contains("\"targetEntities\":[\"entity1\"]"));
+        assert!(json.contains("\"thirdPartyDistributionChannels\":[]"));
+    }
+
+    #[test]
+    fn test_user_info_deserialization() {
+        let json = r#"{"sub":"abc123","name":"Test User"}"#;
+        let info: UserInfo = serde_json::from_str(json).unwrap();
+        assert_eq!(info.sub, "abc123");
+        assert_eq!(info.name, Some("Test User".to_string()));
+    }
+
+    #[test]
+    fn test_user_info_deserialization_no_name() {
+        let json = r#"{"sub":"abc123"}"#;
+        let info: UserInfo = serde_json::from_str(json).unwrap();
+        assert_eq!(info.sub, "abc123");
+        assert!(info.name.is_none());
+    }
+
+    #[test]
+    fn test_token_response_deserialization() {
+        let json = r#"{"access_token":"token123","expires_in":3600}"#;
+        let response: TokenResponse = serde_json::from_str(json).unwrap();
+        assert_eq!(response.access_token, "token123");
+        assert_eq!(response.expires_in, 3600);
+    }
+
+    #[test]
+    fn test_constants() {
+        assert!(AUTH_URL.starts_with("https://"));
+        assert!(TOKEN_URL.starts_with("https://"));
+        assert!(API_BASE.starts_with("https://"));
+        assert!(REDIRECT_URI.contains("localhost"));
+        assert!(SCOPES.contains("profile"));
+    }
+}

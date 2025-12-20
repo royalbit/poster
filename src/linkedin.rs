@@ -134,17 +134,19 @@ pub async fn authenticate() -> Result<()> {
                 _ => payload.to_string(),
             };
             match base64::Engine::decode(&base64::engine::general_purpose::URL_SAFE_NO_PAD, &padded)
-                .or_else(|_| base64::Engine::decode(&base64::engine::general_purpose::STANDARD, &padded))
-            {
-                Ok(decoded) => {
-                    match serde_json::from_slice::<IdTokenClaims>(&decoded) {
-                        Ok(claims) => {
-                            println!("Authenticated as: {}", claims.name.as_deref().unwrap_or("Unknown"));
-                            (claims.sub, claims.name)
-                        }
-                        Err(e) => anyhow::bail!("Failed to parse id_token claims: {e}"),
+                .or_else(|_| {
+                    base64::Engine::decode(&base64::engine::general_purpose::STANDARD, &padded)
+                }) {
+                Ok(decoded) => match serde_json::from_slice::<IdTokenClaims>(&decoded) {
+                    Ok(claims) => {
+                        println!(
+                            "Authenticated as: {}",
+                            claims.name.as_deref().unwrap_or("Unknown")
+                        );
+                        (claims.sub, claims.name)
                     }
-                }
+                    Err(e) => anyhow::bail!("Failed to parse id_token claims: {e}"),
+                },
                 Err(e) => anyhow::bail!("Failed to decode id_token: {e}"),
             }
         } else {
@@ -165,8 +167,14 @@ pub async fn authenticate() -> Result<()> {
             anyhow::bail!("Failed to fetch profile: {status} - {body}\n\nMake sure 'Sign In with LinkedIn using OpenID Connect' product is added to your app.");
         }
 
-        let profile: UserInfo = profile_resp.json().await.context("Failed to parse profile")?;
-        println!("Authenticated as: {}", profile.name.as_deref().unwrap_or("Unknown"));
+        let profile: UserInfo = profile_resp
+            .json()
+            .await
+            .context("Failed to parse profile")?;
+        println!(
+            "Authenticated as: {}",
+            profile.name.as_deref().unwrap_or("Unknown")
+        );
         (profile.sub, profile.name)
     };
 

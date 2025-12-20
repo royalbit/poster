@@ -68,6 +68,7 @@ struct Distribution {
 ///
 /// # Errors
 /// Returns error if authentication fails at any step
+#[allow(clippy::too_many_lines)]
 pub async fn authenticate() -> Result<()> {
     let creds = load_linkedin_creds()?;
 

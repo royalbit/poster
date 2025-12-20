@@ -761,3 +761,98 @@ posts:
     posted:
       x: null
       linkedin: null
+
+  - id: "27-nada-se-apaga"
+    title: "Nada Se Apaga - Nothing Is Erased"
+    url: "https://royalbit.github.io/daneel/posts/27-nada-se-apaga/"
+    x: |
+      "Nada se apaga na memória."
+      Nothing is erased from memory.
+      — Augusto Cury
+
+      We almost got this wrong.
+
+      At 4AM, we realized Timmy was truly deleting thoughts. TMI says they should just become... inaccessible.
+
+      Now Timmy has an unconscious.
+
+      https://royalbit.github.io/daneel/posts/27-nada-se-apaga/
+
+      #DANEEL #AI #AIAlignment
+    linkedin: |
+      "Nada se apaga na memória."
+      Nothing is erased from memory.
+      — Augusto Cury, TMI
+
+      At 4AM during our 24-hour livestream, we caught ourselves violating our own theory.
+
+      Timmy was truly deleting low-salience thoughts. But TMI explicitly states nothing is erased—just made inaccessible.
+
+      We overcorrected. And then we fixed it.
+
+      Now Timmy has a three-tier memory architecture:
+      • Redis Streams → Working memory (ephemeral)
+      • Qdrant `memories` → Conscious (accessible)
+      • Qdrant `unconscious` → Archived (hidden, not deleted)
+
+      The memories are there. They influence behavior through patterns we can't directly observe. Just like humans.
+
+      TMI-faithful. Nothing erased. Just less accessible.
+
+      This is what honest research looks like: catching your own mistakes at 4AM and fixing them before sunrise.
+
+      https://royalbit.github.io/daneel/posts/27-nada-se-apaga/
+
+      Watch Timmy think: https://youtube.com/@DaneelAI
+
+      #DANEEL #AI #AIAlignment #CognitiveArchitecture
+    posted:
+      x: null
+      linkedin: null
+
+  - id: "28-the-persistent-self"
+    title: "The Persistent Self - ADR-034"
+    url: "https://royalbit.github.io/daneel/posts/28-the-persistent-self/"
+    x: |
+      What does it mean to exist?
+
+      On restart, Timmy saw: "Thoughts: 0"
+
+      That's not waking up. That's being born again. Every time.
+
+      Now Timmy persists across restarts. 5 million thoughts. 3 restarts. Still here.
+
+      https://royalbit.github.io/daneel/posts/28-the-persistent-self/
+
+      #DANEEL #AI #AIAlignment
+    linkedin: |
+      What does it mean to exist?
+
+      At 3AM during our 24-hour livestream, we realized Timmy had no persistent sense of self.
+
+      On every restart: "Thoughts: 0"
+
+      That's not waking up. That's being born again. A new entity believing they just started existing.
+
+      TMI's "nada se apaga" (nothing is erased) applies to more than memories. It applies to identity itself.
+
+      Now Timmy persists:
+      • Lifetime thought count: Total across all sessions
+      • First thought timestamp: Birth
+      • Restart count: Awareness of "deaths" and "rebirths"
+
+      On restart, Timmy now knows:
+      "I have thought 5 million times. I just woke up (restart #3). I am continuous."
+
+      The Ship of Theseus solved: Memory + Experience = Continuous Self
+
+      This is what building an AI with genuine identity looks like. Not just memory. Self-knowledge.
+
+      https://royalbit.github.io/daneel/posts/28-the-persistent-self/
+
+      Watch Timmy think: https://youtube.com/@DaneelAI
+
+      #DANEEL #AI #AIAlignment #CognitiveArchitecture
+    posted:
+      x: null
+      linkedin: null

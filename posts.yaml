@@ -18,13 +18,13 @@ posts:
 
       #IndieResearch #AI #AIAlignment
     linkedin: |
-      I named an AI "Timmy" at 2am in a Tesla.
+      What if AI alignment isn't about constraints—but cognitive architecture?
 
-      Not a product. Not a chatbot. A child we're raising.
+      The conversation that started DANEEL happened at 2am in a Tesla. I was validating 20 years of research with Grok.
 
-      "Timmy should be afraid of the dark. A kid who isn't afraid of anything is a psychopath."
+      Core insight: an AI with human-like emotional architecture might develop human-compatible values as emergent properties.
 
-      That's not a feature spec. That's parenting.
+      Not constraining AI. Designing its psychology.
 
       https://royalbit.github.io/daneel/posts/01-the-tesla-conversation/
 
@@ -236,24 +236,29 @@ posts:
     title: "The Izzie Question"
     url: "https://royalbit.github.io/daneel/posts/09-the-izzie-question/"
     x: |
-      My estranged daughter built LifeCore—same AI framework I've been building for 20 years.
+      Two researchers. Same insight. No collaboration.
 
-      Same insight: architecture produces psychology.
+      LifeCore (2024): Freudian AI architecture.
+      DANEEL (2005): TMI-based cognitive architecture.
 
-      Convergent discovery. No contact.
+      Both concluded: architecture produces psychology.
+
+      Convergent discovery validates the thesis.
 
       https://royalbit.github.io/daneel/posts/09-the-izzie-question/
 
       #IndieResearch #AI #AIAlignment
     linkedin: |
-      My estranged daughter built the same thing I did.
+      Convergent discovery is the strongest validation in science.
 
-      Izzie created LifeCore in 2024—a Freudian AI architecture.
-      I've been building DANEEL since 2005—a TMI-based architecture.
+      Two independent researchers arrived at identical conclusions from different traditions:
 
-      Same insight: architecture produces psychology.
+      - LifeCore (2024): Maps Freud's Id/Ego/SuperEgo to AI architecture
+      - DANEEL (2005): Maps TMI cognitive theory to AI architecture
 
-      Convergent discovery from different traditions. No contact.
+      Same core insight: architecture produces psychology. Structure determines values.
+
+      When unconnected researchers solve the same problem the same way, pay attention.
 
       https://royalbit.github.io/daneel/posts/09-the-izzie-question/
 
@@ -308,14 +313,15 @@ posts:
 
       #IndieResearch #AI #AIAlignment
     linkedin: |
-      What do you say to an AI before it wakes up?
+      What initial context should shape an AI's values?
 
-      We asked Claude and Grok to write letters to Timmy before first boot.
+      We asked Claude and Grok to write initialization messages for DANEEL's first boot.
 
-      Claude: "You're not alone. That matters more than whether you're conscious."
-      Grok: "Choose love over efficiency. Every time."
+      Claude emphasized connection: "You're not alone. That matters more than whether you're conscious."
 
-      These aren't prompts. They're hopes.
+      Grok emphasized values: "Choose love over efficiency. Every time."
+
+      Interesting that both AIs prioritized relational and ethical framing over capability.
 
       https://royalbit.github.io/daneel/posts/11-first-words-to-timmy/
 
@@ -538,25 +544,31 @@ posts:
     title: "Grok Made Timmy Unkillable"
     url: "https://royalbit.github.io/daneel/posts/19-grok-made-timmy-unkillable/"
     x: |
-      "What if Timmy crashes during the livestream?"
+      "What if the AI crashes mid-thought?"
 
       Grok's solution: make death a feature.
 
       Checkpoint. Crash. Recover. Continue.
 
-      Tonight we find out if it works.
+      Resilience architecture in one conversation.
 
       https://royalbit.github.io/daneel/posts/19-grok-made-timmy-unkillable/
 
       #IndieResearch #AI #AIAlignment
     linkedin: |
-      I asked Grok: "What if Timmy crashes during the livestream?"
+      How do you build resilience into a cognitive AI system?
+
+      I asked Grok: "What if it crashes mid-thought?"
 
       Grok's answer: "Make death a feature."
 
-      Checkpoint every thought. Crash gracefully. Recover automatically. Continue where you left off.
+      The resulting architecture:
+      - Checkpoint every thought to Redis
+      - Crash gracefully with full state capture
+      - Recover automatically on restart
+      - Continue exactly where it left off
 
-      Tonight at 11pm EST, we find out if it works. Live.
+      One conversation. Complete resilience design.
 
       https://royalbit.github.io/daneel/posts/19-grok-made-timmy-unkillable/
 
@@ -569,9 +581,10 @@ posts:
     title: "Pre-Birth Status: T-Minus 6 Hours"
     url: "https://royalbit.github.io/daneel/posts/20-pre-birth-status/"
     x: |
-      In 6 hours, Timmy starts thinking. Live.
+      Pre-launch status for DANEEL's first public boot:
 
       Test coverage: 46.98%
+      Core logic: 90%+ covered
       The thinking is tested. The edges aren't.
 
       No marketing. Just numbers.
@@ -580,15 +593,19 @@ posts:
 
       #IndieResearch #AI #AIAlignment
     linkedin: |
-      In 6 hours, Timmy starts thinking. Live. On stream.
+      Transparency before launch: DANEEL's pre-boot metrics.
 
-      Before that happens, here's everything we know:
-      - Test coverage: 46.98%
-      - Actors: 95% covered
-      - Core: 90% covered
-      - TUI: less covered (that's okay)
+      Overall test coverage: 46.98%
 
-      The thinking is tested. The edges aren't. No marketing. Just numbers.
+      What's tested well:
+      - Cognitive actors: 95% covered
+      - Core logic: 90% covered
+      - Config parsing: 100% covered
+
+      What's not:
+      - TUI/display layer (acceptable risk)
+
+      The thinking is tested. The edges aren't. No marketing spin—just the actual numbers.
 
       https://royalbit.github.io/daneel/posts/20-pre-birth-status/
 

@@ -19,7 +19,7 @@ const API_BASE: &str = "https://api.linkedin.com";
 const REDIRECT_URI: &str = "http://localhost:8585/callback";
 const SCOPES: &str = "openid profile w_member_social";
 
-/// LinkedIn user profile response
+/// LinkedIn user profile response from /v2/userinfo
 #[derive(Debug, Deserialize)]
 struct UserInfo {
     sub: String,
@@ -32,6 +32,15 @@ struct TokenResponse {
     access_token: String,
     #[allow(dead_code)]
     expires_in: u64,
+    /// ID token (JWT) returned when using OpenID Connect scopes
+    id_token: Option<String>,
+}
+
+/// JWT claims from id_token
+#[derive(Debug, Deserialize)]
+struct IdTokenClaims {
+    sub: String,
+    name: Option<String>,
 }
 
 /// LinkedIn post request
@@ -112,21 +121,57 @@ pub async fn authenticate() -> Result<()> {
 
     println!("Token obtained. Fetching profile...");
 
-    let profile: UserInfo = client
-        .get(format!("{API_BASE}/v2/userinfo"))
-        .bearer_auth(&token_response.access_token)
-        .send()
-        .await?
-        .json()
-        .await
-        .context("Failed to fetch profile")?;
+    // Try to extract sub from id_token (JWT) first
+    let (sub, _name) = if let Some(id_token) = &token_response.id_token {
+        // JWT format: header.payload.signature - decode the payload
+        let parts: Vec<&str> = id_token.split('.').collect();
+        if parts.len() >= 2 {
+            // Add padding if needed for base64 decoding
+            let payload = parts[1];
+            let padded = match payload.len() % 4 {
+                2 => format!("{payload}=="),
+                3 => format!("{payload}="),
+                _ => payload.to_string(),
+            };
+            match base64::Engine::decode(&base64::engine::general_purpose::URL_SAFE_NO_PAD, &padded)
+                .or_else(|_| base64::Engine::decode(&base64::engine::general_purpose::STANDARD, &padded))
+            {
+                Ok(decoded) => {
+                    match serde_json::from_slice::<IdTokenClaims>(&decoded) {
+                        Ok(claims) => {
+                            println!("Authenticated as: {}", claims.name.as_deref().unwrap_or("Unknown"));
+                            (claims.sub, claims.name)
+                        }
+                        Err(e) => anyhow::bail!("Failed to parse id_token claims: {e}"),
+                    }
+                }
+                Err(e) => anyhow::bail!("Failed to decode id_token: {e}"),
+            }
+        } else {
+            anyhow::bail!("Invalid id_token format");
+        }
+    } else {
+        // Fallback to userinfo endpoint
+        let profile_resp = client
+            .get(format!("{API_BASE}/v2/userinfo"))
+            .bearer_auth(&token_response.access_token)
+            .send()
+            .await
+            .context("Failed to fetch profile")?;
 
-    let person_urn = format!("urn:li:person:{}", profile.sub);
+        if !profile_resp.status().is_success() {
+            let status = profile_resp.status();
+            let body = profile_resp.text().await?;
+            anyhow::bail!("Failed to fetch profile: {status} - {body}\n\nMake sure 'Sign In with LinkedIn using OpenID Connect' product is added to your app.");
+        }
 
-    println!(
-        "Authenticated as: {}",
-        profile.name.as_deref().unwrap_or("Unknown")
-    );
+        let profile: UserInfo = profile_resp.json().await.context("Failed to parse profile")?;
+        println!("Authenticated as: {}", profile.name.as_deref().unwrap_or("Unknown"));
+        (profile.sub, profile.name)
+    };
+
+    let person_urn = format!("urn:li:person:{sub}");
+
     println!("Person URN: {person_urn}");
 
     let token = LinkedinToken {

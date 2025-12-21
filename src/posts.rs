@@ -5,6 +5,18 @@ use anyhow::{Context, Result};
 use serde::{Deserialize, Serialize};
 use std::fs;
 use std::path::Path;
+use url::Url;
+
+/// Posted status tracking for each platform
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Eq, Default)]
+pub struct PostedStatus {
+    /// ISO timestamp when posted to X, or null if not posted
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub x: Option<String>,
+    /// ISO timestamp when posted to LinkedIn, or null if not posted
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub linkedin: Option<String>,
+}
 
 /// A single social media post
 #[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Eq)]
@@ -14,6 +26,9 @@ pub struct Post {
     pub url: String,
     pub x: String,
     pub linkedin: String,
+    /// Tracking of when this post was published to each platform
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub posted: Option<PostedStatus>,
 }
 
 /// Posts file structure
@@ -50,13 +65,115 @@ pub fn parse_posts_yaml(content: &str) -> Result<Vec<Post>> {
     Ok(posts_file.posts)
 }
 
-/// Load posts from default YAML file location
+/// Validation error for a post
+#[derive(Debug)]
+pub struct ValidationError {
+    pub post_id: String,
+    pub message: String,
+    pub is_warning: bool,
+}
+
+/// Validate posts and return any errors/warnings
+///
+/// Checks:
+/// - X posts must be <= 280 chars
+/// - URL format must be valid
+/// - Warns on missing posted timestamps
+#[must_use]
+pub fn validate_posts(posts: &[Post]) -> Vec<ValidationError> {
+    let mut errors = Vec::new();
+
+    for post in posts {
+        // Check X content length
+        let x_len = post.x.trim().len();
+        if x_len > 280 {
+            errors.push(ValidationError {
+                post_id: post.id.clone(),
+                message: format!("X content exceeds 280 chars ({x_len}/280)"),
+                is_warning: false,
+            });
+        }
+
+        // Validate URL format
+        if Url::parse(&post.url).is_err() {
+            errors.push(ValidationError {
+                post_id: post.id.clone(),
+                message: format!("Invalid URL: {}", post.url),
+                is_warning: false,
+            });
+        }
+
+        // Warn on missing posted timestamps
+        if post.posted.is_none() {
+            errors.push(ValidationError {
+                post_id: post.id.clone(),
+                message: "Missing posted timestamps".to_string(),
+                is_warning: true,
+            });
+        }
+    }
+
+    errors
+}
+
+/// Print validation errors/warnings to stderr
+pub fn print_validation_errors(errors: &[ValidationError]) {
+    for error in errors {
+        if error.is_warning {
+            eprintln!("Warning [{}]: {}", error.post_id, error.message);
+        } else {
+            eprintln!("Error [{}]: {}", error.post_id, error.message);
+        }
+    }
+}
+
+/// Load posts with optional custom path
 ///
 /// # Errors
 /// Returns error if posts file is missing or malformed
-pub fn load_posts() -> Result<Vec<Post>> {
-    let path = posts_path()?;
+pub fn load_posts_with_path(custom_path: Option<&Path>) -> Result<Vec<Post>> {
+    let path = posts_path(custom_path)?;
     load_posts_from_path(&path)
+}
+
+/// Platform identifier for posted timestamps
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum Platform {
+    X,
+    LinkedIn,
+}
+
+/// Update the posted timestamp for a specific post and platform
+///
+/// # Errors
+/// Returns error if posts file cannot be read or written
+pub fn update_posted_timestamp(post_id: &str, platform: Platform, posts_path: &Path) -> Result<()> {
+    let content = fs::read_to_string(posts_path)
+        .with_context(|| format!("Failed to read posts from {}", posts_path.display()))?;
+
+    let mut posts_file: PostsFile =
+        serde_yaml::from_str(&content).context("Failed to parse posts.yaml")?;
+
+    let timestamp = chrono::Utc::now().to_rfc3339();
+
+    let post = posts_file
+        .posts
+        .iter_mut()
+        .find(|p| p.id == post_id)
+        .with_context(|| format!("Post '{post_id}' not found"))?;
+
+    let posted = post.posted.get_or_insert(PostedStatus::default());
+
+    match platform {
+        Platform::X => posted.x = Some(timestamp),
+        Platform::LinkedIn => posted.linkedin = Some(timestamp),
+    }
+
+    let yaml = serde_yaml::to_string(&posts_file).context("Failed to serialize posts")?;
+    fs::write(posts_path, yaml)
+        .with_context(|| format!("Failed to write posts to {}", posts_path.display()))?;
+
+    Ok(())
 }
 
 /// Find a post by ID from a list
@@ -65,12 +182,12 @@ pub fn find_post_in_list(posts: &[Post], id: &str) -> Option<Post> {
     posts.iter().find(|p| p.id == id).cloned()
 }
 
-/// Find a post by ID from default file
+/// Find a post by ID with optional custom path
 ///
 /// # Errors
 /// Returns error if post is not found or posts file cannot be read
-pub fn find_post(id: &str) -> Result<Post> {
-    let posts = load_posts()?;
+pub fn find_post_with_path(id: &str, custom_path: Option<&Path>) -> Result<Post> {
+    let posts = load_posts_with_path(custom_path)?;
 
     find_post_in_list(&posts, id).with_context(|| {
         format!("Post '{id}' not found. Run 'daneel-poster list' to see available posts.")
@@ -89,23 +206,44 @@ pub fn format_post_info(post: &Post) -> String {
 
     let li_len = post.linkedin.trim().len();
 
+    // Show posted status
+    let posted_status = match &post.posted {
+        Some(status) => {
+            let x_posted = status.x.as_ref().map_or("not posted", |_| "posted");
+            let li_posted = status.linkedin.as_ref().map_or("not posted", |_| "posted");
+            format!("X: {x_posted}, LinkedIn: {li_posted}")
+        }
+        None => "not tracked".to_string(),
+    };
+
     format!(
-        "  {}\n    Title: {}\n    URL: {}\n    X: {x_len} chars [{x_status}]\n    LinkedIn: {li_len} chars\n",
+        "  {}\n    Title: {}\n    URL: {}\n    X: {x_len} chars [{x_status}]\n    LinkedIn: {li_len} chars\n    Posted: {posted_status}\n",
         post.id, post.title, post.url
     )
 }
 
-/// List all available posts
+/// List all available posts with optional custom path
 ///
 /// # Errors
 /// Returns error if posts file cannot be read
-pub fn list_posts() -> Result<()> {
-    let posts = load_posts()?;
+pub fn list_posts_with_path(custom_path: Option<&Path>) -> Result<()> {
+    let path = posts_path(custom_path)?;
+    let posts = load_posts_from_path(&path)?;
+
+    // Validate and print warnings
+    let errors = validate_posts(&posts);
+    let has_errors = errors.iter().any(|e| !e.is_warning);
+    if !errors.is_empty() {
+        print_validation_errors(&errors);
+        if has_errors {
+            println!();
+        }
+    }
 
     println!("\nAvailable posts ({} total):\n", posts.len());
 
-    for post in posts {
-        print!("{}", format_post_info(&post));
+    for post in &posts {
+        print!("{}", format_post_info(post));
     }
 
     Ok(())
@@ -200,6 +338,7 @@ posts:
             url: "https://example.com".to_string(),
             x: "Short tweet".to_string(),
             linkedin: "LinkedIn content".to_string(),
+            posted: None,
         };
 
         let info = format_post_info(&post);
@@ -218,6 +357,7 @@ posts:
             url: "https://example.com".to_string(),
             x: long_tweet,
             linkedin: "LinkedIn content".to_string(),
+            posted: None,
         };
 
         let info = format_post_info(&post);
@@ -232,8 +372,122 @@ posts:
             url: "https://example.com".to_string(),
             x: "Tweet".to_string(),
             linkedin: "LinkedIn".to_string(),
+            posted: None,
         };
         let post2 = post1.clone();
         assert_eq!(post1, post2);
+    }
+
+    #[test]
+    fn test_posted_status_serialization() {
+        let status = PostedStatus {
+            x: Some("2025-01-01T00:00:00Z".to_string()),
+            linkedin: None,
+        };
+
+        let post = Post {
+            id: "test".to_string(),
+            title: "Title".to_string(),
+            url: "https://example.com".to_string(),
+            x: "Tweet".to_string(),
+            linkedin: "LinkedIn".to_string(),
+            posted: Some(status),
+        };
+
+        let yaml = serde_yaml::to_string(&PostsFile { posts: vec![post] }).unwrap();
+        assert!(yaml.contains("posted:"));
+        assert!(yaml.contains("2025-01-01T00:00:00Z"));
+    }
+
+    #[test]
+    fn test_validate_posts_valid() {
+        let posts = vec![Post {
+            id: "test".to_string(),
+            title: "Title".to_string(),
+            url: "https://example.com".to_string(),
+            x: "Short tweet".to_string(),
+            linkedin: "LinkedIn".to_string(),
+            posted: Some(PostedStatus::default()),
+        }];
+
+        let errors = validate_posts(&posts);
+        assert!(errors.is_empty());
+    }
+
+    #[test]
+    fn test_validate_posts_x_too_long() {
+        let posts = vec![Post {
+            id: "test".to_string(),
+            title: "Title".to_string(),
+            url: "https://example.com".to_string(),
+            x: "x".repeat(300),
+            linkedin: "LinkedIn".to_string(),
+            posted: Some(PostedStatus::default()),
+        }];
+
+        let errors = validate_posts(&posts);
+        assert_eq!(errors.len(), 1);
+        assert!(!errors[0].is_warning);
+        assert!(errors[0].message.contains("280"));
+    }
+
+    #[test]
+    fn test_validate_posts_invalid_url() {
+        let posts = vec![Post {
+            id: "test".to_string(),
+            title: "Title".to_string(),
+            url: "not-a-valid-url".to_string(),
+            x: "Tweet".to_string(),
+            linkedin: "LinkedIn".to_string(),
+            posted: Some(PostedStatus::default()),
+        }];
+
+        let errors = validate_posts(&posts);
+        assert_eq!(errors.len(), 1);
+        assert!(!errors[0].is_warning);
+        assert!(errors[0].message.contains("Invalid URL"));
+    }
+
+    #[test]
+    fn test_validate_posts_missing_posted() {
+        let posts = vec![Post {
+            id: "test".to_string(),
+            title: "Title".to_string(),
+            url: "https://example.com".to_string(),
+            x: "Tweet".to_string(),
+            linkedin: "LinkedIn".to_string(),
+            posted: None,
+        }];
+
+        let errors = validate_posts(&posts);
+        assert_eq!(errors.len(), 1);
+        assert!(errors[0].is_warning);
+        assert!(errors[0].message.contains("Missing posted"));
+    }
+
+    #[test]
+    fn test_update_posted_timestamp() {
+        use tempfile::TempDir;
+
+        let dir = TempDir::new().unwrap();
+        let path = dir.path().join("posts.yaml");
+
+        let initial = r"
+posts:
+  - id: test-post
+    title: Test Post
+    url: https://example.com
+    x: Tweet content
+    linkedin: LinkedIn content
+";
+        std::fs::write(&path, initial).unwrap();
+
+        update_posted_timestamp("test-post", Platform::X, &path).unwrap();
+
+        let content = std::fs::read_to_string(&path).unwrap();
+        let posts_file: PostsFile = serde_yaml::from_str(&content).unwrap();
+
+        assert!(posts_file.posts[0].posted.is_some());
+        assert!(posts_file.posts[0].posted.as_ref().unwrap().x.is_some());
     }
 }

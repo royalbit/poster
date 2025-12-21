@@ -4,12 +4,15 @@
 
 #![allow(clippy::doc_markdown)] // LinkedIn is a brand name, not code
 
-use crate::config::{load_linkedin_creds, load_linkedin_token, save_linkedin_token, LinkedinToken};
-use crate::posts::{find_post, load_posts};
+use crate::config::{
+    load_linkedin_creds, load_linkedin_token, posts_path, save_linkedin_token, LinkedinToken,
+};
+use crate::posts::{find_post_with_path, load_posts_with_path, update_posted_timestamp, Platform};
 use anyhow::{Context, Result};
 use serde::{Deserialize, Serialize};
 use std::io::{BufRead, BufReader, Write};
 use std::net::TcpListener;
+use std::path::Path;
 use std::time::Duration;
 use url::Url;
 
@@ -210,11 +213,11 @@ fn extract_code(request_line: &str) -> Option<String> {
 ///
 /// # Errors
 /// Returns error if posting fails
-pub async fn post(id: &str, dry_run: bool) -> Result<()> {
-    let post = find_post(id)?;
-    let content = post.linkedin.trim();
+pub async fn post(id: &str, dry_run: bool, custom_posts_path: Option<&Path>) -> Result<()> {
+    let post_data = find_post_with_path(id, custom_posts_path)?;
+    let content = post_data.linkedin.trim();
 
-    println!("Posting: {}", post.title);
+    println!("Posting: {}", post_data.title);
 
     if dry_run {
         println!("\n[DRY RUN] Would post to LinkedIn:");
@@ -256,14 +259,20 @@ pub async fn post(id: &str, dry_run: bool) -> Result<()> {
         .await?;
 
     if response.status().is_success() {
-        let post_id = response
+        let rest_id = response
             .headers()
             .get("x-restli-id")
             .and_then(|v| v.to_str().ok())
             .unwrap_or("unknown");
 
         println!("Posted successfully!");
-        println!("Post ID: {post_id}");
+        println!("Post ID: {rest_id}");
+
+        // Update posted timestamp
+        let path = posts_path(custom_posts_path)?;
+        if let Err(e) = update_posted_timestamp(id, Platform::LinkedIn, &path) {
+            eprintln!("Warning: Failed to update posted timestamp: {e}");
+        }
     } else {
         let status = response.status();
         let body = response.text().await?;
@@ -277,8 +286,8 @@ pub async fn post(id: &str, dry_run: bool) -> Result<()> {
 ///
 /// # Errors
 /// Returns error if any post fails
-pub async fn post_all(delay: u64, dry_run: bool) -> Result<()> {
-    let posts = load_posts()?;
+pub async fn post_all(delay: u64, dry_run: bool, custom_posts_path: Option<&Path>) -> Result<()> {
+    let posts = load_posts_with_path(custom_posts_path)?;
 
     println!(
         "Posting {} items with {delay}s delay between posts...",
@@ -292,7 +301,7 @@ pub async fn post_all(delay: u64, dry_run: bool) -> Result<()> {
     for (i, p) in posts.iter().enumerate() {
         println!("\n[{}/{}] {}", i + 1, posts.len(), p.title);
 
-        post(&p.id, dry_run).await?;
+        post(&p.id, dry_run, custom_posts_path).await?;
 
         if !dry_run && i < posts.len() - 1 {
             println!("Waiting {delay}s before next post...");

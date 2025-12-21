@@ -11,12 +11,17 @@ mod x;
 
 use anyhow::Result;
 use clap::{Parser, Subcommand};
+use std::path::PathBuf;
 
 #[derive(Parser)]
 #[command(name = "daneel-poster")]
 #[command(about = "Automated social media poster for DANEEL blog content")]
 #[command(version)]
 struct Cli {
+    /// Path to posts.yaml file (overrides DANEEL_POSTS_PATH env and default locations)
+    #[arg(long, global = true, env = "DANEEL_POSTS_PATH")]
+    posts_path: Option<PathBuf>,
+
     #[command(subcommand)]
     command: Commands,
 }
@@ -98,6 +103,7 @@ enum XAction {
 #[tokio::main]
 async fn main() -> Result<()> {
     let cli = Cli::parse();
+    let posts_path = cli.posts_path.as_deref();
 
     match cli.command {
         Commands::Init => {
@@ -105,7 +111,7 @@ async fn main() -> Result<()> {
         }
 
         Commands::List => {
-            posts::list_posts()?;
+            posts::list_posts_with_path(posts_path)?;
         }
 
         Commands::Linkedin { action } => match action {
@@ -113,19 +119,19 @@ async fn main() -> Result<()> {
                 linkedin::authenticate().await?;
             }
             LinkedinAction::Post { id, dry_run } => {
-                linkedin::post(&id, dry_run).await?;
+                linkedin::post(&id, dry_run, posts_path).await?;
             }
             LinkedinAction::PostAll { delay, dry_run } => {
-                linkedin::post_all(delay, dry_run).await?;
+                linkedin::post_all(delay, dry_run, posts_path).await?;
             }
         },
 
         Commands::X { action } => match action {
             XAction::Post { id, dry_run } => {
-                x::post(&id, dry_run).await?;
+                x::post(&id, dry_run, posts_path).await?;
             }
             XAction::PostAll { delay, dry_run } => {
-                x::post_all(delay, dry_run).await?;
+                x::post_all(delay, dry_run, posts_path).await?;
             }
         },
     }

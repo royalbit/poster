@@ -2,8 +2,8 @@
 //!
 //! Handles posting via the X API v2 using OAuth 1.0a.
 
-use crate::config::load_x_creds;
-use crate::posts::{find_post, load_posts};
+use crate::config::{load_x_creds, posts_path};
+use crate::posts::{find_post_with_path, load_posts_with_path, update_posted_timestamp, Platform};
 use anyhow::Result;
 use base64::Engine;
 use hmac::{Hmac, Mac};
@@ -12,6 +12,7 @@ use serde::{Deserialize, Serialize};
 use sha2::Sha256;
 use std::collections::BTreeMap;
 use std::fmt::Write as _;
+use std::path::Path;
 use std::time::{Duration, SystemTime, UNIX_EPOCH};
 
 const API_URL: &str = "https://api.twitter.com/2/tweets";
@@ -165,8 +166,8 @@ fn oauth_header(
 ///
 /// # Errors
 /// Returns error if posting fails
-pub async fn post(id: &str, dry_run: bool) -> Result<()> {
-    let post_data = find_post(id)?;
+pub async fn post(id: &str, dry_run: bool, custom_posts_path: Option<&Path>) -> Result<()> {
+    let post_data = find_post_with_path(id, custom_posts_path)?;
     let content = post_data.x.trim();
 
     println!("Posting: {}", post_data.title);
@@ -223,6 +224,12 @@ pub async fn post(id: &str, dry_run: bool) -> Result<()> {
         println!("Posted successfully!");
         println!("Tweet ID: {}", tweet.data.id);
         println!("URL: https://x.com/i/status/{}", tweet.data.id);
+
+        // Update posted timestamp
+        let path = posts_path(custom_posts_path)?;
+        if let Err(e) = update_posted_timestamp(id, Platform::X, &path) {
+            eprintln!("Warning: Failed to update posted timestamp: {e}");
+        }
     } else {
         let status = response.status();
         let body = response.text().await?;
@@ -236,8 +243,8 @@ pub async fn post(id: &str, dry_run: bool) -> Result<()> {
 ///
 /// # Errors
 /// Returns error if any post fails
-pub async fn post_all(delay: u64, dry_run: bool) -> Result<()> {
-    let posts = load_posts()?;
+pub async fn post_all(delay: u64, dry_run: bool, custom_posts_path: Option<&Path>) -> Result<()> {
+    let posts = load_posts_with_path(custom_posts_path)?;
 
     println!(
         "Posting {} items with {delay}s delay between posts...",
@@ -251,7 +258,7 @@ pub async fn post_all(delay: u64, dry_run: bool) -> Result<()> {
     for (i, p) in posts.iter().enumerate() {
         println!("\n[{}/{}] {}", i + 1, posts.len(), p.title);
 
-        post(&p.id, dry_run).await?;
+        post(&p.id, dry_run, custom_posts_path).await?;
 
         if !dry_run && i < posts.len() - 1 {
             println!("Waiting {delay}s before next post...");

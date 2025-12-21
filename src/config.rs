@@ -144,21 +144,34 @@ pub fn config_dir() -> Result<PathBuf> {
     Ok(dir)
 }
 
-/// Get the posts file path (looks in current dir first, then config dir)
+/// Get the posts file path
+///
+/// Priority: custom_path > DANEEL_POSTS_PATH env > cwd > config dir
 ///
 /// # Errors
 /// Returns error if config directory cannot be determined
-pub fn posts_path() -> Result<PathBuf> {
+pub fn posts_path(custom_path: Option<&Path>) -> Result<PathBuf> {
+    // 1. Custom path takes priority
+    if let Some(path) = custom_path {
+        return Ok(path.to_path_buf());
+    }
+
+    // 2. Environment variable
+    if let Ok(env_path) = std::env::var("DANEEL_POSTS_PATH") {
+        let path = PathBuf::from(env_path);
+        if path.exists() {
+            return Ok(path);
+        }
+    }
+
+    // 3. Current working directory
     let local = PathBuf::from("posts.yaml");
     if local.exists() {
         return Ok(local);
     }
 
+    // 4. Config directory (fallback)
     let config = config_dir()?.join("posts.yaml");
-    if config.exists() {
-        return Ok(config);
-    }
-
     Ok(config)
 }
 

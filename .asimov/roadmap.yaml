@@ -5,23 +5,28 @@
 current:
   version: "v0.2.0"
   title: "Schema validation and external posts path"
-  status: "pending"
+  status: "completed"
 
-next:
-  - title: "SCHEMA-1: Add posted field to Post struct"
+completed:
+  - id: "SCHEMA-1"
+    title: "Add posted field to Post struct"
     description: |
       The Post struct is missing the `posted` field that exists in posts.yaml.
       Add: posted: Option<PostedStatus> where PostedStatus has x and linkedin timestamps.
     priority: "critical"
+    status: "completed"
 
-  - title: "SCHEMA-2: Add --posts-path CLI argument"
+  - id: "SCHEMA-2"
+    title: "Add --posts-path CLI argument"
     description: |
       Allow specifying posts.yaml path via CLI or DANEEL_POSTS_PATH env var.
       Default: look in cwd, then ~/.config/daneel-poster/
       This allows daneel repo to own the posts.yaml while poster remains a tool.
     priority: "critical"
+    status: "completed"
 
-  - title: "SCHEMA-3: YAML validation on load"
+  - id: "SCHEMA-3"
+    title: "YAML validation on load"
     description: |
       Validate posts.yaml on load:
       - X posts must be <= 280 chars
@@ -29,21 +34,32 @@ next:
       - URL format valid
       - Warn on missing posted timestamps
     priority: "high"
+    status: "completed"
 
-  - title: "SCHEMA-4: Update posted timestamps after successful post"
+  - id: "SCHEMA-4"
+    title: "Update posted timestamps after successful post"
     description: |
       After successfully posting to X or LinkedIn:
       - Update the posted.x or posted.linkedin field with ISO timestamp
       - Write back to posts.yaml
       - This tracks what's been published
     priority: "high"
+    status: "completed"
+
+next: []
 
 backlog:
-  - title: "Add --skip-posted flag"
+  - id: "BACKLOG-1"
+    title: "Add --skip-posted flag"
     description: "Skip posts that already have posted timestamps"
+    status: "pending"
 
-  - title: "Add JSON schema for posts.yaml"
+  - id: "BACKLOG-2"
+    title: "Add JSON schema for posts.yaml"
     description: "Create a formal JSON schema for IDE validation"
+    status: "pending"
 
-  - title: "Support for media attachments"
+  - id: "BACKLOG-3"
+    title: "Support for media attachments"
     description: "Allow attaching images to posts"
+    status: "pending"

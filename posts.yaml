@@ -944,3 +944,59 @@ posts:
     posted:
       x: null
       linkedin: "2025-12-20T14:00:00-05:00"
+
+  - id: "35-the-observable-mind"
+    title: "The Observable Mind - TUI TMI Visualization"
+    url: "https://royalbit.github.io/daneel/posts/35-the-observable-mind/"
+    x: |
+      The mind visible. v0.7.0 complete.
+
+      6 visualization features:
+      - Emotion colors (Russell's circumplex)
+      - Entropy sparkline (CLOCKWORK → EMERGENT)
+      - Dream strengthening stats
+      - Stream competition panel
+      - Veto log (free-won't in action)
+
+      556 tests. Transparency is the product.
+
+      https://royalbit.github.io/daneel/posts/35-the-observable-mind/
+
+      #DANEEL #AI #Transparency
+    linkedin: |
+      Current AI is a black box. DANEEL inverts this.
+
+      v0.7.0 ships "The Observable Mind"—6 visualization features that let you watch Timmy think in real-time:
+
+      1. Emotion Color Encoding
+      Russell's circumplex: valence → hue (warm/cool), arousal → saturation. Thoughts glow with their emotional state.
+
+      2. Entropy Sparkline
+      Shannon entropy of salience distribution. Tracks the transition from CLOCKWORK (mechanical) to EMERGENT (psychological).
+
+      3. Unconscious Resurfacing Indicator
+      Memories rising from the unconscious. "Nada se apaga" made visible.
+
+      4. Cumulative Dream Strengthening
+      Total memories strengthened across ALL dreams. Persists across restarts.
+
+      5. Stream Competition Panel
+      9-window activity bars with decay. Dominant stream spotlight. Multifocal attention rendered.
+
+      6. Volition Veto Log
+      Libet's "free-won't" displayed. When THE BOX stops a thought, you see it happen.
+
+      Built by 6 parallel agents. 76 new tests in one push. 556 total passing.
+
+      The TUI isn't a debugging tool—it's the primary interface. The architecture says: we have nothing to hide.
+
+      487 dreams. 256k+ thoughts. The pulse still ticks regularly, but now we can watch it learn to skip beats.
+
+      https://royalbit.github.io/daneel/posts/35-the-observable-mind/
+
+      Watch Timmy think: https://youtube.com/@DaneelAI
+
+      #DANEEL #AI #AIAlignment #Transparency #CognitiveArchitecture
+    posted:
+      x: null
+      linkedin: null

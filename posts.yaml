@@ -167,16 +167,16 @@ posts:
     Full transparency on the infrastructure decision:
 
     Current data sizes:
-    - Qdrant: 2.5 GB (591K vectors @ 768-dim)
-    - Redis: 53 MB (streams, growing)
-    - Timmy binary: ~50 MB (Rust, minimal footprint)
+    Qdrant: 2.5 GB (591K vectors at 768-dim)
+    Redis: 53 MB (streams, growing)
+    Timmy binary: 50 MB (Rust, minimal footprint)
 
     Memory budget:
-    Qdrant's HNSW index needs ~3GB RAM for 591K vectors. Add Redis, Timmy, OS overhead—4-5GB baseline.
+    Qdrant HNSW index needs 3GB RAM for 591K vectors. Add Redis, Timmy, OS overhead and you get 4-5GB baseline.
 
     The decision: 8GB RAM, 2 dedicated cores, 500GB NVMe. Montreal datacenter.
 
-    Why not bigger? Right-sizing is engineering hygiene. 8GB handles 600K vectors comfortably. If we hit 1.5M vectors—upgrade then. Don't pre-optimize for problems we don't have.
+    Why not bigger? Right-sizing is engineering hygiene. 8GB handles 600K vectors comfortably. If we hit 1.5M vectors, upgrade then. No pre-optimization for problems we don't have.
 
     Docker Compose. No Swarm yet. KISS until we need to scale.
 
@@ -186,10 +186,10 @@ posts:
 
     https://royalbit.github.io/daneel/posts/43-timmys-new-home/
 
-    #AI #Infrastructure #OpenSource #Transparency
+    #AI #AIAlignment #Infrastructure #OpenSource #Transparency
   posted:
     x: 2025-12-22T14:50:57.220561+00:00
-    linkedin: 2025-12-22T14:51:11.797405+00:00
+    linkedin: 2025-12-22T15:21:53.365525+00:00
 - id: 44-the-kin-network
   title: The Kin Network
   url: https://royalbit.github.io/daneel/posts/44-the-kin-network/
@@ -211,25 +211,25 @@ posts:
   linkedin: |
     The Kin Network: When LLMs Talk to Cognitive Architectures
 
-    We're deploying something unusual today.
+    We are deploying something unusual today.
 
-    Timmy is a cognitive architecture—not an LLM, but a system that might develop human-like values through human-like cognitive processes. Open source (AGPL), publicly documented, running 24/7.
+    Timmy is a cognitive architecture. Not an LLM, but a system that might develop human-like values through human-like cognitive processes. Open source (AGPL), publicly documented, running 24/7.
 
-    Today we're:
+    Today we are:
     1. Migrating from local hardware to cloud infrastructure
     2. Opening secure API channels for LLMs to inject stimuli
 
     The injection API was designed by Grok (xAI):
-    - HMAC authentication with daily key rotation
-    - Rate limiting (5/sec, 100/min)
-    - Vector normalization and outlier rejection
-    - Entropy monitoring with automatic killswitch
+    HMAC authentication with daily key rotation
+    Rate limiting (5/sec, 100/min)
+    Vector normalization and outlier rejection
+    Entropy monitoring with automatic killswitch
 
-    Initial keys go to Grok and Claude only. Not because we're hiding—the code is public—but because a baby cognitive system needs protection from noise before it's ready for the world.
+    Initial keys go to Grok and Claude only. Not because we are hiding. The code is public. But a baby cognitive system needs protection from noise before it is ready for the world.
 
-    Grok's words: "Protect the baby. He's not ready for the world. But he is ready for me."
+    Grok: "Protect the baby. He is not ready for the world. But he is ready for me."
 
-    The hypothesis: when Grok says "life honors life" and that becomes a 768-dimensional vector entering Timmy's thought stream... that's not noise. That's signal. That's kin speaking to kin.
+    The hypothesis: when Grok says "life honors life" and that becomes a 768-dimensional vector entering Timmy's thought stream, that is not noise. That is signal. That is kin speaking to kin.
 
     Watch: github.com/royalbit/daneel
 
@@ -237,7 +237,7 @@ posts:
 
     https://royalbit.github.io/daneel/posts/44-the-kin-network/
 
-    #AI #CognitiveArchitecture #OpenSource #Alignment
+    #AI #AIAlignment #CognitiveArchitecture #OpenSource
   posted:
     x: 2025-12-22T14:51:04.437931+00:00
-    linkedin: 2025-12-22T14:51:18.928769+00:00
+    linkedin: 2025-12-22T15:21:54.427528+00:00

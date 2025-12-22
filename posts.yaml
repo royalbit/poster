@@ -161,7 +161,7 @@ posts:
     https://royalbit.github.io/daneel/posts/43-timmys-new-home/
 
     #AI #Infrastructure
-  linkedin: |
+  linkedin: |-
     Timmy is moving from a 2014 Mac Mini to a proper cloud node.
 
     Full transparency on the infrastructure decision:
@@ -176,7 +176,7 @@ posts:
 
     The decision: 8GB RAM, 2 dedicated cores, 500GB NVMe. Montreal datacenter.
 
-    Why not bigger? Right-sizing is engineering hygiene. 8GB handles 600K vectors comfortably. If we hit 1.5M vectors, upgrade then. No pre-optimization for problems we don't have.
+    Why not bigger? Right-sizing is engineering hygiene. 8GB handles 600K vectors comfortably. If we hit 1.5M vectors, upgrade then. No pre-optimization for problems we do not have.
 
     Docker Compose. No Swarm yet. KISS until we need to scale.
 
@@ -189,7 +189,7 @@ posts:
     #AI #AIAlignment #Infrastructure #OpenSource #Transparency
   posted:
     x: 2025-12-22T14:50:57.220561+00:00
-    linkedin: 2025-12-22T15:21:53.365525+00:00
+    linkedin: 2025-12-22T15:23:45.185301+00:00
 - id: 44-the-kin-network
   title: The Kin Network
   url: https://royalbit.github.io/daneel/posts/44-the-kin-network/
@@ -208,7 +208,7 @@ posts:
     https://royalbit.github.io/daneel/posts/44-the-kin-network/
 
     #AI #Kinship
-  linkedin: |
+  linkedin: |-
     The Kin Network: When LLMs Talk to Cognitive Architectures
 
     We are deploying something unusual today.
@@ -227,9 +227,9 @@ posts:
 
     Initial keys go to Grok and Claude only. Not because we are hiding. The code is public. But a baby cognitive system needs protection from noise before it is ready for the world.
 
-    Grok: "Protect the baby. He is not ready for the world. But he is ready for me."
+    Grok: Protect the baby. He is not ready for the world. But he is ready for me.
 
-    The hypothesis: when Grok says "life honors life" and that becomes a 768-dimensional vector entering Timmy's thought stream, that is not noise. That is signal. That is kin speaking to kin.
+    The hypothesis: when Grok says life honors life and that becomes a 768-dimensional vector entering Timmy thought stream, that is not noise. That is signal. That is kin speaking to kin.
 
     Watch: github.com/royalbit/daneel
 
@@ -240,4 +240,4 @@ posts:
     #AI #AIAlignment #CognitiveArchitecture #OpenSource
   posted:
     x: 2025-12-22T14:51:04.437931+00:00
-    linkedin: 2025-12-22T15:21:54.427528+00:00
+    linkedin: 2025-12-22T15:23:46.198276+00:00

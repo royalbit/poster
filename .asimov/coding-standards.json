@@ -9,8 +9,7 @@
     "Code is for humans first, machines second",
     "Tests are documentation",
     "No warnings, no exceptions",
-    "Perfect > Done, no sloppy code",
-    "Push for 100% test coverage, if possible"
+    "Done > Perfect, but not sloppy"
   ],
   "rule": "See project.yaml coding_standards section for project-specific rules"
 }

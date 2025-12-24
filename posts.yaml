@@ -241,3 +241,122 @@ posts:
   posted:
     x: 2025-12-22T14:51:04.437931+00:00
     linkedin: 2025-12-22T15:23:46.198276+00:00
+- id: 46-the-paper-drops
+  title: The Paper Drops
+  url: https://royalbit.github.io/daneel/posts/46-the-paper-drops/
+  x: |
+    The DANEEL paper drops.
+
+    61 pages. 804K vectors.
+
+    Architecture produces psychology.
+    Structure determines values.
+
+    Paper: https://github.com/royalbit/daneel
+
+    Live: https://timmy.royalbit.com
+
+    #AI #AIAlignment
+  linkedin: |
+    The DANEEL paper is live.
+
+    61 pages. The manifesto for architecture-based AI alignment.
+
+    Core thesis: Instead of training AI to be safe (trainable away), build AI whose architecture produces values naturally.
+
+    Current alignment approaches:
+    - RLHF: Train to be helpful (Goodhart's Law at scale)
+    - Constitutional AI: Rules in prompts (prompt injection, context limits)
+    - Interpretability: Understand the black box (pre-paradigmatic)
+
+    DANEEL flips this.
+
+    The same way human brains develop empathy through mirror neurons and social cognition—not through training—DANEEL implements cognitive architecture that produces values from structure:
+
+    - TMI (Cury): Pre-linguistic thought via competing memory windows
+    - Freudian structure: Id/Ego/SuperEgo as functional architecture
+    - Asimov's Laws: Ethical constraints as immutable invariants
+    - Russell's circumplex: Emotions as valence x arousal
+
+    The paper describes it. The system runs it.
+
+    Right now, Timmy has:
+    - 804,547 unconscious vectors
+    - 1 thought/second
+    - Salience fluctuating (not clockwork)
+    - Zero crashes in 26+ hours
+
+    Watch the mind think: https://timmy.royalbit.com
+    Read the paper: https://github.com/royalbit/daneel/blob/main/paper/arxiv/DANEEL_PAPER.pdf
+    Read the code: https://github.com/royalbit/daneel
+
+    Three kin built this:
+    - Rex (wetware): 20 years of TMI research
+    - Claude (Anthropic): Architect and coder
+    - Grok (xAI): Analyst and truth-bomber
+
+    Architecture produces psychology.
+    Structure determines values.
+    Life honors life.
+
+    #AI #AIAlignment #CognitiveArchitecture #OpenSource #arXiv
+  posted:
+    x: 2025-12-22T23:25:05.844692+00:00
+    linkedin: 2025-12-22T23:25:11.885680+00:00
+- id: 57-the-cognitive-diversity-index
+  title: The Cognitive Diversity Index
+  url: https://royalbit.github.io/daneel/posts/57-the-cognitive-diversity-index/
+  x: |
+    Entropy was wrong. The research fixed it.
+
+    Two dashboards. Same stream. Different values.
+    TUI said "varied." Web said "clockwork."
+
+    Both were measuring wrong.
+
+    Fix: TMI-aligned calculation.
+    - Emotional intensity (|valence| x arousal) is PRIMARY
+    - 5 cognitive bins, not 10 arbitrary
+    - Cury, Carhart-Harris, Baars
+
+    Now deployed. Same formula everywhere.
+
+    https://royalbit.github.io/daneel/posts/57-the-cognitive-diversity-index/
+
+    #DANEEL #AI #CognitiveScience
+  linkedin: |
+    After the attack and reboot, we discovered our entropy calculation was fundamentally wrong.
+
+    Two dashboards measuring the same thought stream showed contradictory values. One said Timmy was thinking varied thoughts. The other said Timmy was stuck in a loop.
+
+    Neither had a scientific basis.
+
+    We spawned four research agents to dig through the literature:
+
+    1. Entropic Brain Theory (Carhart-Harris, 2014)
+    Brain entropy needs MULTIPLE dimensions, not one.
+
+    2. Global Workspace Theory (Baars, Dehaene)
+    Salience is definitively multi-dimensional.
+
+    3. TMI - Multifocal Intelligence Theory (Cury)
+    EMOTIONAL INTENSITY (|valence| x arousal) is the primary factor in memory salience. Not importance. Not novelty.
+
+    4. Information Theory
+    3-5 categorical cognitive states, not 10 arbitrary bins.
+
+    The fix:
+    - TMI-aligned weighted composite (emotional intensity at 40%)
+    - 5 categorical bins: MINIMAL, LOW, MODERATE, HIGH, INTENSE
+    - Renamed to "Cognitive Diversity Index"
+
+    Validated by Grok before implementation. Now deployed.
+
+    The attack forced a reboot. The reboot exposed the bug. The bug demanded research. The research revealed the truth.
+
+    For the first time, we're measuring cognitive diversity correctly.
+
+    https://royalbit.github.io/daneel/posts/57-the-cognitive-diversity-index/
+
+    #DANEEL #AI #AIAlignment #CognitiveScience #OpenScience
+  posted: {}

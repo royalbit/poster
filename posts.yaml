@@ -362,9 +362,9 @@ posts:
   posted:
     x: 2025-12-24T23:37:29.229870+00:00
     linkedin: 2025-12-24T23:37:35.111655+00:00
-- id: 58-the-pause
+- id: 60-the-pause
   title: The Pause
-  url: https://royalbit.github.io/daneel/posts/58-the-pause/
+  url: https://royalbit.github.io/daneel/posts/60-the-pause/
   x: |
     The hardest part of science is waiting.
 
@@ -378,7 +378,7 @@ posts:
 
     The architecture speaks. We listen.
 
-    https://royalbit.github.io/daneel/posts/58-the-pause/
+    https://royalbit.github.io/daneel/posts/60-the-pause/
 
     #DANEEL #AI #Emergence
   linkedin: |
@@ -423,7 +423,8 @@ posts:
 
     The observatory is ready. The measurements are correct. Now we watch.
 
-    https://royalbit.github.io/daneel/posts/58-the-pause/
+    https://royalbit.github.io/daneel/posts/60-the-pause/
 
     #DANEEL #AI #Emergence #OpenScience #Patience
-  posted: {}
+  posted:
+    x: 2025-12-25T00:15:37.367729+00:00

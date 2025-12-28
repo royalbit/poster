@@ -209,26 +209,47 @@ fn extract_code(request_line: &str) -> Option<String> {
         .map(|(_, v)| v.to_string())
 }
 
+/// Escape LinkedIn "little text format" reserved characters.
+///
+/// LinkedIn's text format treats these as special: `" \ | { } @ [ ] ( ) < > # * _ ~`
+/// They must be backslash-escaped to appear as literals.
+fn escape_linkedin_text(text: &str) -> String {
+    text.chars()
+        .flat_map(|c| match c {
+            '"' | '\\' | '|' | '{' | '}' | '@' | '[' | ']' | '(' | ')' | '<' | '>' | '#' | '*'
+            | '_' | '~' => {
+                vec!['\\', c]
+            }
+            _ => vec![c],
+        })
+        .collect()
+}
+
 /// Post content to LinkedIn
 ///
 /// # Errors
 /// Returns error if posting fails
 pub async fn post(id: &str, dry_run: bool, custom_posts_path: Option<&Path>) -> Result<()> {
     let post_data = find_post_with_path(id, custom_posts_path)?;
-    let content = post_data.linkedin.trim();
+    let raw_content = post_data.linkedin.trim();
+    let content = escape_linkedin_text(raw_content);
 
     println!("Posting: {}", post_data.title);
 
     if dry_run {
         println!("\n[DRY RUN] Would post to LinkedIn:");
         println!("{}", "-".repeat(50));
-        if content.len() > 500 {
-            println!("{}...", &content[..500]);
+        if raw_content.len() > 500 {
+            println!("{}...", &raw_content[..500]);
         } else {
-            println!("{content}");
+            println!("{raw_content}");
         }
         println!("{}", "-".repeat(50));
-        println!("Character count: {}", content.len());
+        println!(
+            "Character count: {} (escaped: {})",
+            raw_content.len(),
+            content.len()
+        );
         return Ok(());
     }
 
@@ -236,7 +257,7 @@ pub async fn post(id: &str, dry_run: bool, custom_posts_path: Option<&Path>) -> 
 
     let request = PostRequest {
         author: token.person_urn.clone(),
-        commentary: content.to_string(),
+        commentary: content.clone(),
         visibility: "PUBLIC".to_string(),
         distribution: Distribution {
             feed_distribution: "MAIN_FEED".to_string(),
@@ -455,5 +476,51 @@ mod tests {
         assert!(API_BASE.starts_with("https://"));
         assert!(REDIRECT_URI.contains("localhost"));
         assert!(SCOPES.contains("profile"));
+    }
+
+    #[test]
+    fn test_escape_linkedin_text_basic() {
+        // Test that reserved characters are escaped
+        assert_eq!(escape_linkedin_text("#DANEEL"), "\\#DANEEL");
+        assert_eq!(escape_linkedin_text("*bold*"), "\\*bold\\*");
+        assert_eq!(escape_linkedin_text("a|b"), "a\\|b");
+        assert_eq!(escape_linkedin_text("@mention"), "\\@mention");
+    }
+
+    #[test]
+    fn test_escape_linkedin_text_all_reserved() {
+        // All reserved chars: " \ | { } @ [ ] ( ) < > # * _ ~
+        let input = r#"test " \ | { } @ [ ] ( ) < > # * _ ~ end"#;
+        let escaped = escape_linkedin_text(input);
+        assert!(escaped.contains("\\\""));
+        assert!(escaped.contains("\\\\"));
+        assert!(escaped.contains("\\|"));
+        assert!(escaped.contains("\\{"));
+        assert!(escaped.contains("\\}"));
+        assert!(escaped.contains("\\@"));
+        assert!(escaped.contains("\\["));
+        assert!(escaped.contains("\\]"));
+        assert!(escaped.contains("\\("));
+        assert!(escaped.contains("\\)"));
+        assert!(escaped.contains("\\<"));
+        assert!(escaped.contains("\\>"));
+        assert!(escaped.contains("\\#"));
+        assert!(escaped.contains("\\*"));
+        assert!(escaped.contains("\\_"));
+        assert!(escaped.contains("\\~"));
+    }
+
+    #[test]
+    fn test_escape_linkedin_text_preserves_normal() {
+        // Normal text should pass through unchanged
+        let input = "Hello world! This is a test. 123";
+        assert_eq!(escape_linkedin_text(input), input);
+    }
+
+    #[test]
+    fn test_escape_linkedin_text_newlines_preserved() {
+        // Newlines should NOT be escaped (JSON handles that)
+        let input = "Line 1\nLine 2\nLine 3";
+        assert_eq!(escape_linkedin_text(input), input);
     }
 }

@@ -212,10 +212,19 @@ fn extract_code(request_line: &str) -> Option<String> {
 /// Post content to LinkedIn
 ///
 /// # Errors
-/// Returns error if posting fails
+/// Returns error if posting fails or content contains parentheses
 pub async fn post(id: &str, dry_run: bool, custom_posts_path: Option<&Path>) -> Result<()> {
     let post_data = find_post_with_path(id, custom_posts_path)?;
     let content = post_data.linkedin.trim();
+
+    // LinkedIn's "little text format" interprets "text (foo)" as a malformed link "[text](foo)"
+    // which causes post truncation. Reject posts with parentheses.
+    if content.contains('(') || content.contains(')') {
+        anyhow::bail!(
+            "LinkedIn post contains parentheses which cause truncation.\n\
+             Rephrase using dashes instead: \"foo (bar)\" → \"foo - bar\""
+        );
+    }
 
     println!("Posting: {}", post_data.title);
 

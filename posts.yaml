@@ -362,6 +362,53 @@ posts:
   posted:
     x: 2025-12-24T23:37:29.229870+00:00
     linkedin: 2025-12-24T23:37:35.111655+00:00
+- id: 61-truth-over-comfort
+  title: Truth Over Comfort
+  url: https://github.com/royalbit/asimov/blob/main/docs/adr/055-balanced-architecture-critique.md
+  x: |
+    We audited our own claims. Grok called bullshit.
+
+    "Your 5,391x error gap assumes no self-correction."
+
+    He was right. With correction mechanisms, the gap is 1.9x.
+
+    Full context still wins. But the math was incomplete.
+
+    ADR-055: Truth over comfort.
+
+    https://github.com/royalbit/asimov/blob/main/docs/adr/055-balanced-architecture-critique.md
+
+    #AI #Honesty
+  linkedin: |
+    We published ADR-054 claiming dynamic swarm beats fixed agentic frameworks by 5,391x at 50 steps.
+
+    Grok said: "Your math assumes no self-correction. That's not how real systems work."
+
+    He was right.
+
+    Agent-R (ByteDance) shows MCTS-based reflection enables real-time error correction.
+    MATC (HK PolyU) shows +15.7% improvement via self-correction before error propagation.
+    Retry logic alone reduces API failures by 90%.
+
+    When you factor in self-correction (60% correction rate):
+    - Gap at 10 steps: 5.6x → 1.9x
+    - Gap at 20 steps: 31x → 3.5x
+    - Fragmented runway: 3.1 steps → 8.3 steps to failure
+
+    Full context still wins. But fixed frameworks are more viable than we claimed.
+
+    So we published ADR-055: Balanced Architecture Critique.
+
+    20 new references. Updated Forge model. Nuance added to ADR-027 (BMAD).
+
+    Per our sycophancy protocol: "Truth over comfort. Disagree openly."
+
+    Three predictive brains. Different failure modes. One direction: truth.
+
+    https://github.com/royalbit/asimov/blob/main/docs/adr/055-balanced-architecture-critique.md
+
+    #AI #AIAlignment #Honesty #OpenScience #Truth
+  posted: {}
 - id: 60-the-pause
   title: The Pause
   url: https://royalbit.github.io/daneel/posts/60-the-pause/

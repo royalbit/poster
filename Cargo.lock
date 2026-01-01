@@ -1271,32 +1271,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "7edddbd0b52d732b21ad9a5fab5c704c14cd949e5e9a1ec5929a24fded1b904c"
 
 [[package]]
-name = "poster"
-version = "0.7.0"
-dependencies = [
- "anyhow",
- "base64",
- "cargo-husky",
- "chrono",
- "clap",
- "dirs",
- "jsonschema",
- "open",
- "rand",
- "reqwest",
- "serde",
- "serde_json",
- "serde_yaml",
- "sha2",
- "tempfile",
- "thiserror",
- "tokio",
- "url",
- "urlencoding",
- "wiremock",
-]
-
-[[package]]
 name = "potential_utf"
 version = "0.1.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1504,6 +1478,32 @@ dependencies = [
  "libc",
  "untrusted",
  "windows-sys 0.52.0",
+]
+
+[[package]]
+name = "royalbit-poster"
+version = "0.7.0"
+dependencies = [
+ "anyhow",
+ "base64",
+ "cargo-husky",
+ "chrono",
+ "clap",
+ "dirs",
+ "jsonschema",
+ "open",
+ "rand",
+ "reqwest",
+ "serde",
+ "serde_json",
+ "serde_yaml",
+ "sha2",
+ "tempfile",
+ "thiserror",
+ "tokio",
+ "url",
+ "urlencoding",
+ "wiremock",
 ]
 
 [[package]]

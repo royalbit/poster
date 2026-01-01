@@ -1,11 +1,18 @@
 [package]
-name = "poster"
+name = "royalbit-poster"
 version = "0.7.0"
 edition = "2021"
-authors = ["Louis C. Tavares <rex@royalbit.ca>"]
-description = "RoyalBit Poster - Social media automation CLI"
-license = "LicenseRef-Proprietary"
-publish = false
+authors = ["RoyalBit Inc. <admin@royalbit.ca>"]
+description = "Social media automation CLI for LinkedIn and X"
+license = "Elastic-2.0"
+repository = "https://github.com/royalbit/poster"
+readme = "README.md"
+keywords = ["cli", "social-media", "linkedin", "twitter", "automation"]
+categories = ["command-line-utilities"]
+
+[[bin]]
+name = "poster"
+path = "src/main.rs"
 
 [lints.rust]
 unsafe_code = "forbid"

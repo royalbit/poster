@@ -1,5 +1,6 @@
-# DANEEL Blog Posts for Social Media
-# Copy to ~/.config/daneel-poster/posts.yaml or use in current directory
+# yaml-language-server: $schema=posts.schema.json
+# RoyalBit Poster - Social Media Posts
+# Copy to ~/.config/poster/posts.yaml or use in current directory
 
 posts:
   - id: "14-open-source-dominance"

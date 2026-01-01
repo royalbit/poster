@@ -1,0 +1,73 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://royalbit.ca/schemas/posts.schema.json",
+  "title": "RoyalBit Poster Posts",
+  "description": "Schema for posts.yaml - social media content definitions",
+  "type": "object",
+  "required": ["posts"],
+  "additionalProperties": false,
+  "properties": {
+    "posts": {
+      "type": "array",
+      "description": "List of social media posts",
+      "items": {
+        "$ref": "#/$defs/post"
+      }
+    }
+  },
+  "$defs": {
+    "post": {
+      "type": "object",
+      "description": "A single social media post",
+      "required": ["id", "title", "url", "x", "linkedin"],
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the post (kebab-case recommended)",
+          "pattern": "^[a-z0-9-]+$",
+          "minLength": 1
+        },
+        "title": {
+          "type": "string",
+          "description": "Human-readable title of the post",
+          "minLength": 1
+        },
+        "url": {
+          "type": "string",
+          "description": "URL to the blog post or content",
+          "format": "uri"
+        },
+        "x": {
+          "type": "string",
+          "description": "Content for X/Twitter (max 280 characters)",
+          "maxLength": 280
+        },
+        "linkedin": {
+          "type": "string",
+          "description": "Content for LinkedIn (longer form allowed)"
+        },
+        "posted": {
+          "$ref": "#/$defs/postedStatus"
+        }
+      }
+    },
+    "postedStatus": {
+      "type": "object",
+      "description": "Timestamps tracking when post was published to each platform",
+      "additionalProperties": false,
+      "properties": {
+        "x": {
+          "type": "string",
+          "description": "ISO 8601 timestamp when posted to X",
+          "format": "date-time"
+        },
+        "linkedin": {
+          "type": "string",
+          "description": "ISO 8601 timestamp when posted to LinkedIn",
+          "format": "date-time"
+        }
+      }
+    }
+  }
+}

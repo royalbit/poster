@@ -2,6 +2,12 @@
 
 All notable changes to RoyalBit Poster.
 
+## [0.4.0] - 2026-01-01
+
+### Added
+- JSON schema for posts.yaml (`posts.schema.json`)
+- IDE validation and autocomplete support via yaml-language-server directive
+
 ## [0.3.0] - 2026-01-01
 
 ### Changed
@@ -15,6 +21,10 @@ All notable changes to RoyalBit Poster.
 ## [0.2.0] - 2025-12-19
 
 ### Added
+- `posted` field tracking in posts.yaml (timestamps for x/linkedin)
+- `--posts-path` CLI argument and `DANEEL_POSTS_PATH` env var
+- YAML validation on load (X posts ≤280 chars, URL format, required fields)
+- Automatic timestamp update after successful posting
 - Comprehensive unit tests (55 tests)
 - Test coverage for config, posts, linkedin, x modules
 - Testable pure functions extracted from side-effectful code

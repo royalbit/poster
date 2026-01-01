@@ -1,27 +1,17 @@
 # RoyalBit Asimov Roadmap
 #
 # WHAT to build - milestones only
+# History moved to CHANGELOG.md
 
 current:
-  version: "v0.4.0"
-  title: "Skip posted and JSON schema"
-  summary: "Add --skip-posted flag and JSON schema for posts.yaml validation"
+  version: "v0.5.0"
+  title: "Media attachments"
+  summary: "Support attaching images to LinkedIn and X posts"
   status: "planned"
 
 next: []
 
 backlog:
-  - "Support for media attachments"
+  - "Skip already-posted entries by default (no flag needed)"
 
-completed:
-  - version: "v0.3.0"
-    title: "Rebrand to RoyalBit Poster"
-    summary: "Renamed from daneel-poster to poster, updated config paths and branding"
-
-  - version: "v0.2.0"
-    title: "Schema validation and external posts path"
-    summary: "Added posted field tracking, --posts-path CLI arg, YAML validation"
-
-  - version: "v0.1.0"
-    title: "Initial release"
-    summary: "LinkedIn and X posting with OAuth, dry-run support"
+completed: []

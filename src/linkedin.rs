@@ -7,7 +7,9 @@
 use crate::config::{
     load_linkedin_creds, load_linkedin_token, posts_path, save_linkedin_token, LinkedinToken,
 };
-use crate::posts::{find_post_with_path, load_posts_with_path, update_posted_timestamp, Platform};
+use crate::posts::{
+    filter_unposted, find_post_with_path, load_posts_with_path, update_posted_timestamp, Platform,
+};
 use anyhow::{Context, Result};
 use serde::{Deserialize, Serialize};
 use std::io::{BufRead, BufReader, Write};
@@ -296,10 +298,21 @@ pub async fn post(id: &str, dry_run: bool, custom_posts_path: Option<&Path>) -> 
 /// # Errors
 /// Returns error if any post fails
 pub async fn post_all(delay: u64, dry_run: bool, custom_posts_path: Option<&Path>) -> Result<()> {
-    let posts = load_posts_with_path(custom_posts_path)?;
+    let all_posts = load_posts_with_path(custom_posts_path)?;
+    let posts = filter_unposted(&all_posts, Platform::LinkedIn);
+    let skipped = all_posts.len() - posts.len();
+
+    if skipped > 0 {
+        println!("Skipping {skipped} already-posted item(s)");
+    }
+
+    if posts.is_empty() {
+        println!("No unposted content for LinkedIn.");
+        return Ok(());
+    }
 
     println!(
-        "Posting {} items with {delay}s delay between posts...",
+        "Posting {} item(s) with {delay}s delay between posts...",
         posts.len(),
     );
 

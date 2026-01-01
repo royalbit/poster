@@ -2,6 +2,16 @@
 
 All notable changes to RoyalBit Poster.
 
+## [0.5.0] - 2026-01-01
+
+### Changed
+- `post-all` now skips already-posted entries by default
+- Shows count of skipped items and exits early if nothing to post
+
+### Added
+- `is_posted()` and `filter_unposted()` helper functions
+- 7 unit tests for skip-posted logic
+
 ## [0.4.1] - 2026-01-01
 
 ### Added

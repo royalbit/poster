@@ -143,6 +143,25 @@ pub enum Platform {
     LinkedIn,
 }
 
+/// Check if a post has already been posted to a platform
+#[must_use]
+pub fn is_posted(post: &Post, platform: Platform) -> bool {
+    post.posted.as_ref().is_some_and(|status| match platform {
+        Platform::X => status.x.is_some(),
+        Platform::LinkedIn => status.linkedin.is_some(),
+    })
+}
+
+/// Filter posts to only those not yet posted to a platform
+#[must_use]
+pub fn filter_unposted(posts: &[Post], platform: Platform) -> Vec<Post> {
+    posts
+        .iter()
+        .filter(|p| !is_posted(p, platform))
+        .cloned()
+        .collect()
+}
+
 /// Update the posted timestamp for a specific post and platform
 ///
 /// # Errors
@@ -489,6 +508,146 @@ posts:
 
         assert!(posts_file.posts[0].posted.is_some());
         assert!(posts_file.posts[0].posted.as_ref().unwrap().x.is_some());
+    }
+
+    #[test]
+    fn test_is_posted_none() {
+        let post = Post {
+            id: "test".to_string(),
+            title: "Title".to_string(),
+            url: "https://example.com".to_string(),
+            x: "Tweet".to_string(),
+            linkedin: "LinkedIn".to_string(),
+            posted: None,
+        };
+        assert!(!is_posted(&post, Platform::X));
+        assert!(!is_posted(&post, Platform::LinkedIn));
+    }
+
+    #[test]
+    fn test_is_posted_x_only() {
+        let post = Post {
+            id: "test".to_string(),
+            title: "Title".to_string(),
+            url: "https://example.com".to_string(),
+            x: "Tweet".to_string(),
+            linkedin: "LinkedIn".to_string(),
+            posted: Some(PostedStatus {
+                x: Some("2026-01-01T00:00:00Z".to_string()),
+                linkedin: None,
+            }),
+        };
+        assert!(is_posted(&post, Platform::X));
+        assert!(!is_posted(&post, Platform::LinkedIn));
+    }
+
+    #[test]
+    fn test_is_posted_linkedin_only() {
+        let post = Post {
+            id: "test".to_string(),
+            title: "Title".to_string(),
+            url: "https://example.com".to_string(),
+            x: "Tweet".to_string(),
+            linkedin: "LinkedIn".to_string(),
+            posted: Some(PostedStatus {
+                x: None,
+                linkedin: Some("2026-01-01T00:00:00Z".to_string()),
+            }),
+        };
+        assert!(!is_posted(&post, Platform::X));
+        assert!(is_posted(&post, Platform::LinkedIn));
+    }
+
+    #[test]
+    fn test_is_posted_both() {
+        let post = Post {
+            id: "test".to_string(),
+            title: "Title".to_string(),
+            url: "https://example.com".to_string(),
+            x: "Tweet".to_string(),
+            linkedin: "LinkedIn".to_string(),
+            posted: Some(PostedStatus {
+                x: Some("2026-01-01T00:00:00Z".to_string()),
+                linkedin: Some("2026-01-01T00:00:00Z".to_string()),
+            }),
+        };
+        assert!(is_posted(&post, Platform::X));
+        assert!(is_posted(&post, Platform::LinkedIn));
+    }
+
+    #[test]
+    fn test_filter_unposted_all_new() {
+        let posts = vec![
+            Post {
+                id: "post1".to_string(),
+                title: "Title 1".to_string(),
+                url: "https://example.com/1".to_string(),
+                x: "Tweet 1".to_string(),
+                linkedin: "LinkedIn 1".to_string(),
+                posted: None,
+            },
+            Post {
+                id: "post2".to_string(),
+                title: "Title 2".to_string(),
+                url: "https://example.com/2".to_string(),
+                x: "Tweet 2".to_string(),
+                linkedin: "LinkedIn 2".to_string(),
+                posted: None,
+            },
+        ];
+        let filtered = filter_unposted(&posts, Platform::X);
+        assert_eq!(filtered.len(), 2);
+    }
+
+    #[test]
+    fn test_filter_unposted_some_posted() {
+        let posts = vec![
+            Post {
+                id: "post1".to_string(),
+                title: "Title 1".to_string(),
+                url: "https://example.com/1".to_string(),
+                x: "Tweet 1".to_string(),
+                linkedin: "LinkedIn 1".to_string(),
+                posted: Some(PostedStatus {
+                    x: Some("2026-01-01T00:00:00Z".to_string()),
+                    linkedin: None,
+                }),
+            },
+            Post {
+                id: "post2".to_string(),
+                title: "Title 2".to_string(),
+                url: "https://example.com/2".to_string(),
+                x: "Tweet 2".to_string(),
+                linkedin: "LinkedIn 2".to_string(),
+                posted: None,
+            },
+        ];
+        let filtered_x = filter_unposted(&posts, Platform::X);
+        assert_eq!(filtered_x.len(), 1);
+        assert_eq!(filtered_x[0].id, "post2");
+
+        let filtered_li = filter_unposted(&posts, Platform::LinkedIn);
+        assert_eq!(filtered_li.len(), 2);
+    }
+
+    #[test]
+    fn test_filter_unposted_all_posted() {
+        let posts = vec![Post {
+            id: "post1".to_string(),
+            title: "Title 1".to_string(),
+            url: "https://example.com/1".to_string(),
+            x: "Tweet 1".to_string(),
+            linkedin: "LinkedIn 1".to_string(),
+            posted: Some(PostedStatus {
+                x: Some("2026-01-01T00:00:00Z".to_string()),
+                linkedin: Some("2026-01-01T00:00:00Z".to_string()),
+            }),
+        }];
+        let filtered_x = filter_unposted(&posts, Platform::X);
+        assert!(filtered_x.is_empty());
+
+        let filtered_li = filter_unposted(&posts, Platform::LinkedIn);
+        assert!(filtered_li.is_empty());
     }
 
     // Schema validation tests

@@ -4,14 +4,13 @@
 # History moved to CHANGELOG.md
 
 current:
-  version: "v0.5.0"
+  version: "v0.6.0"
   title: "Media attachments"
   summary: "Support attaching images to LinkedIn and X posts"
   status: "planned"
 
 next: []
 
-backlog:
-  - "Skip already-posted entries by default (no flag needed)"
+backlog: []
 
 completed: []

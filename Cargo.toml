@@ -1,6 +1,6 @@
 [package]
 name = "poster"
-version = "0.4.1"
+version = "0.5.0"
 edition = "2021"
 authors = ["Louis C. Tavares <rex@royalbit.ca>"]
 description = "RoyalBit Poster - Social media automation CLI"

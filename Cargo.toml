@@ -1,6 +1,6 @@
 [package]
 name = "royalbit-poster"
-version = "0.7.0"
+version = "0.7.1"
 edition = "2021"
 authors = ["RoyalBit Inc. <admin@royalbit.ca>"]
 description = "Social media automation CLI for LinkedIn and X"
@@ -29,7 +29,7 @@ clap = { version = "4", features = ["derive", "env"] }
 tokio = { version = "1", features = ["full"] }
 
 # HTTP client
-reqwest = { version = "0.12", features = ["json"] }
+reqwest = { version = "0.12", default-features = false, features = ["json", "rustls-tls"] }
 
 # Serialization
 serde = { version = "1", features = ["derive"] }

@@ -490,4 +490,147 @@ posts:
         assert!(posts_file.posts[0].posted.is_some());
         assert!(posts_file.posts[0].posted.as_ref().unwrap().x.is_some());
     }
+
+    // Schema validation tests
+    mod schema {
+        use jsonschema::Validator;
+        use serde_json::Value;
+
+        fn load_schema() -> Value {
+            let schema_str = include_str!("../posts.schema.json");
+            serde_json::from_str(schema_str).expect("Schema should be valid JSON")
+        }
+
+        fn validate_yaml(yaml: &str) -> Result<(), Vec<String>> {
+            let schema = load_schema();
+            let validator = Validator::new(&schema).expect("Schema should compile");
+
+            let yaml_value: serde_yaml::Value =
+                serde_yaml::from_str(yaml).expect("YAML should parse");
+            let json_value: Value =
+                serde_json::to_value(yaml_value).expect("YAML should convert to JSON");
+
+            let errors: Vec<String> = validator
+                .iter_errors(&json_value)
+                .map(|e| e.to_string())
+                .collect();
+
+            if errors.is_empty() {
+                Ok(())
+            } else {
+                Err(errors)
+            }
+        }
+
+        #[test]
+        fn test_schema_is_valid_json() {
+            let schema = load_schema();
+            assert!(schema.is_object());
+            assert_eq!(schema["$schema"], "http://json-schema.org/draft-07/schema#");
+        }
+
+        #[test]
+        fn test_schema_validates_minimal_post() {
+            let yaml = r"
+posts:
+  - id: test-post
+    title: Test Post
+    url: https://example.com
+    x: Tweet content
+    linkedin: LinkedIn content
+";
+            assert!(validate_yaml(yaml).is_ok());
+        }
+
+        #[test]
+        fn test_schema_validates_post_with_posted() {
+            let yaml = r#"
+posts:
+  - id: test-post
+    title: Test Post
+    url: https://example.com
+    x: Tweet content
+    linkedin: LinkedIn content
+    posted:
+      x: "2026-01-01T00:00:00Z"
+      linkedin: "2026-01-01T00:00:00Z"
+"#;
+            assert!(validate_yaml(yaml).is_ok());
+        }
+
+        #[test]
+        fn test_schema_validates_empty_posts() {
+            let yaml = "posts: []";
+            assert!(validate_yaml(yaml).is_ok());
+        }
+
+        #[test]
+        fn test_schema_rejects_missing_posts_key() {
+            let yaml = "other: value";
+            let result = validate_yaml(yaml);
+            assert!(result.is_err());
+            assert!(result.unwrap_err().iter().any(|e| e.contains("posts")));
+        }
+
+        #[test]
+        fn test_schema_rejects_missing_required_field() {
+            let yaml = r"
+posts:
+  - id: test-post
+    title: Test Post
+    url: https://example.com
+    x: Tweet content
+";
+            let result = validate_yaml(yaml);
+            assert!(result.is_err());
+            assert!(result.unwrap_err().iter().any(|e| e.contains("linkedin")));
+        }
+
+        #[test]
+        fn test_schema_rejects_invalid_id_format() {
+            let yaml = r#"
+posts:
+  - id: "Invalid ID With Spaces"
+    title: Test Post
+    url: https://example.com
+    x: Tweet content
+    linkedin: LinkedIn content
+"#;
+            let result = validate_yaml(yaml);
+            assert!(result.is_err());
+        }
+
+        #[test]
+        fn test_schema_rejects_x_over_280_chars() {
+            let long_tweet = "x".repeat(300);
+            let yaml = format!(
+                r#"
+posts:
+  - id: test-post
+    title: Test Post
+    url: https://example.com
+    x: "{long_tweet}"
+    linkedin: LinkedIn content
+"#
+            );
+            let result = validate_yaml(&yaml);
+            assert!(result.is_err());
+            assert!(result.unwrap_err().iter().any(|e| e.contains("280")));
+        }
+
+        #[test]
+        fn test_schema_rejects_extra_properties() {
+            let yaml = r"
+posts:
+  - id: test-post
+    title: Test Post
+    url: https://example.com
+    x: Tweet content
+    linkedin: LinkedIn content
+    extra_field: not allowed
+";
+            let result = validate_yaml(yaml);
+            assert!(result.is_err());
+        }
+    }
 }

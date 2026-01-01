@@ -1,6 +1,6 @@
 [package]
 name = "poster"
-version = "0.4.0"
+version = "0.4.1"
 edition = "2021"
 authors = ["Louis C. Tavares <rex@royalbit.ca>"]
 description = "RoyalBit Poster - Social media automation CLI"
@@ -52,5 +52,6 @@ strip = true
 
 [dev-dependencies]
 cargo-husky = { version = "1", default-features = false, features = ["user-hooks"] }
+jsonschema = "0.29"
 tempfile = "3"
 wiremock = "0.6"

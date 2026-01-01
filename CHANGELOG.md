@@ -2,6 +2,11 @@
 
 All notable changes to RoyalBit Poster.
 
+## [0.4.1] - 2026-01-01
+
+### Added
+- Unit tests for JSON schema validation (9 tests)
+
 ## [0.4.0] - 2026-01-01
 
 ### Added

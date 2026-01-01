@@ -2,6 +2,15 @@
 
 All notable changes to RoyalBit Poster.
 
+## [0.6.0] - 2026-01-01
+
+### Added
+- Image attachment support for LinkedIn and X posts
+- `image` field in posts.yaml for specifying image paths
+- LinkedIn Images API integration (initializeUpload + binary upload)
+- X media upload API integration (base64 media_data)
+- 10 new unit tests for media serialization
+
 ## [0.5.0] - 2026-01-01
 
 ### Changed

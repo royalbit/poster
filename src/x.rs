@@ -6,7 +6,7 @@ use crate::config::{load_x_creds, posts_path};
 use crate::posts::{
     filter_unposted, find_post_with_path, load_posts_with_path, update_posted_timestamp, Platform,
 };
-use anyhow::Result;
+use anyhow::{Context, Result};
 use base64::Engine;
 use hmac::{Hmac, Mac};
 use reqwest::header::{HeaderMap, HeaderValue, AUTHORIZATION, CONTENT_TYPE};
@@ -18,6 +18,7 @@ use std::path::Path;
 use std::time::{Duration, SystemTime, UNIX_EPOCH};
 
 const API_URL: &str = "https://api.twitter.com/2/tweets";
+const MEDIA_UPLOAD_URL: &str = "https://upload.twitter.com/1.1/media/upload.json";
 
 type HmacSha256 = Hmac<Sha256>;
 
@@ -25,6 +26,20 @@ type HmacSha256 = Hmac<Sha256>;
 #[derive(Debug, Serialize, Clone, PartialEq, Eq)]
 pub struct TweetRequest {
     pub text: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub media: Option<TweetMedia>,
+}
+
+/// Media IDs for a tweet
+#[derive(Debug, Serialize, Clone, PartialEq, Eq)]
+pub struct TweetMedia {
+    pub media_ids: Vec<String>,
+}
+
+/// Response from media upload
+#[derive(Debug, Deserialize)]
+struct MediaUploadResponse {
+    media_id_string: String,
 }
 
 /// Tweet response
@@ -164,6 +179,51 @@ fn oauth_header(
     build_auth_header(consumer_key, access_token, &signature, &timestamp, &nonce)
 }
 
+/// Upload an image to X and return its media ID
+///
+/// # Errors
+/// Returns error if upload fails
+async fn upload_image(image_path: &Path, creds: &crate::config::XConfig) -> Result<String> {
+    // Read and base64 encode the image
+    let image_data = std::fs::read(image_path)
+        .with_context(|| format!("Failed to read image: {}", image_path.display()))?;
+    let media_data =
+        base64::Engine::encode(&base64::engine::general_purpose::STANDARD, &image_data);
+
+    let auth_header = oauth_header(
+        &creds.consumer_key,
+        &creds.consumer_secret,
+        &creds.access_token,
+        &creds.access_token_secret,
+        "POST",
+        MEDIA_UPLOAD_URL,
+    );
+
+    let mut headers = HeaderMap::new();
+    headers.insert(AUTHORIZATION, HeaderValue::from_str(&auth_header)?);
+    headers.insert(
+        CONTENT_TYPE,
+        HeaderValue::from_static("application/x-www-form-urlencoded"),
+    );
+
+    let client = reqwest::Client::new();
+    let response = client
+        .post(MEDIA_UPLOAD_URL)
+        .headers(headers)
+        .form(&[("media_data", media_data)])
+        .send()
+        .await?;
+
+    if !response.status().is_success() {
+        let status = response.status();
+        let body = response.text().await?;
+        anyhow::bail!("Failed to upload image: {status} - {body}");
+    }
+
+    let upload_response: MediaUploadResponse = response.json().await?;
+    Ok(upload_response.media_id_string)
+}
+
 /// Post content to X
 ///
 /// # Errors
@@ -171,6 +231,20 @@ fn oauth_header(
 pub async fn post(id: &str, dry_run: bool, custom_posts_path: Option<&Path>) -> Result<()> {
     let post_data = find_post_with_path(id, custom_posts_path)?;
     let content = post_data.x.trim();
+
+    // Resolve image path relative to posts.yaml if present
+    let image_path = if let Some(ref img) = post_data.image {
+        let path = Path::new(img);
+        if path.is_absolute() {
+            Some(path.to_path_buf())
+        } else {
+            // Resolve relative to posts.yaml directory
+            let posts_file = posts_path(custom_posts_path)?;
+            posts_file.parent().map(|p| p.join(path))
+        }
+    } else {
+        None
+    };
 
     println!("Posting: {}", post_data.title);
 
@@ -187,6 +261,9 @@ pub async fn post(id: &str, dry_run: bool, custom_posts_path: Option<&Path>) -> 
         println!("{content}");
         println!("{}", "-".repeat(50));
         println!("Character count: {}/280", content.len());
+        if let Some(ref img_path) = image_path {
+            println!("Image: {}", img_path.display());
+        }
         return Ok(());
     }
 
@@ -195,6 +272,18 @@ pub async fn post(id: &str, dry_run: bool, custom_posts_path: Option<&Path>) -> 
     if creds.consumer_key.is_empty() {
         anyhow::bail!("X API credentials not found in pass royalbit/x");
     }
+
+    // Upload image if present
+    let media = if let Some(ref img_path) = image_path {
+        println!("Uploading image: {}", img_path.display());
+        let media_id = upload_image(img_path, &creds).await?;
+        println!("Image uploaded: {media_id}");
+        Some(TweetMedia {
+            media_ids: vec![media_id],
+        })
+    } else {
+        None
+    };
 
     let auth_header = oauth_header(
         &creds.consumer_key,
@@ -211,6 +300,7 @@ pub async fn post(id: &str, dry_run: bool, custom_posts_path: Option<&Path>) -> 
 
     let request = TweetRequest {
         text: content.to_string(),
+        media,
     };
 
     let client = reqwest::Client::new();
@@ -425,6 +515,7 @@ mod tests {
     fn test_tweet_request_serialization() {
         let request = TweetRequest {
             text: "Hello, world!".to_string(),
+            media: None,
         };
 
         let json = serde_json::to_string(&request).unwrap();
@@ -435,8 +526,52 @@ mod tests {
     fn test_tweet_request_equality() {
         let req1 = TweetRequest {
             text: "test".to_string(),
+            media: None,
         };
         let req2 = req1.clone();
         assert_eq!(req1, req2);
+    }
+
+    #[test]
+    fn test_tweet_media_serialization() {
+        let media = TweetMedia {
+            media_ids: vec!["12345".to_string(), "67890".to_string()],
+        };
+
+        let json = serde_json::to_string(&media).unwrap();
+        assert_eq!(json, r#"{"media_ids":["12345","67890"]}"#);
+    }
+
+    #[test]
+    fn test_tweet_request_with_media() {
+        let request = TweetRequest {
+            text: "Check out this photo!".to_string(),
+            media: Some(TweetMedia {
+                media_ids: vec!["123456789".to_string()],
+            }),
+        };
+
+        let json = serde_json::to_string(&request).unwrap();
+        assert!(json.contains("\"text\":\"Check out this photo!\""));
+        assert!(json.contains("\"media\":{\"media_ids\":[\"123456789\"]}"));
+    }
+
+    #[test]
+    fn test_tweet_request_media_omitted_when_none() {
+        let request = TweetRequest {
+            text: "No media here".to_string(),
+            media: None,
+        };
+
+        let json = serde_json::to_string(&request).unwrap();
+        assert!(!json.contains("\"media\""));
+        assert_eq!(json, r#"{"text":"No media here"}"#);
+    }
+
+    #[test]
+    fn test_media_upload_response_deserialization() {
+        let json = r#"{"media_id_string":"1234567890123456789"}"#;
+        let response: MediaUploadResponse = serde_json::from_str(json).unwrap();
+        assert_eq!(response.media_id_string, "1234567890123456789");
     }
 }

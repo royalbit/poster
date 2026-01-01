@@ -47,6 +47,10 @@
           "type": "string",
           "description": "Content for LinkedIn (longer form allowed)"
         },
+        "image": {
+          "type": "string",
+          "description": "Path to image file (relative to posts.yaml or absolute)"
+        },
         "posted": {
           "$ref": "#/$defs/postedStatus"
         }

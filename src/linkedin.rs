@@ -56,6 +56,8 @@ struct PostRequest {
     commentary: String,
     visibility: String,
     distribution: Distribution,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    content: Option<PostContent>,
     lifecycle_state: String,
     is_reshare_disabled_by_author: bool,
 }
@@ -67,6 +69,33 @@ struct Distribution {
     feed_distribution: String,
     target_entities: Vec<String>,
     third_party_distribution_channels: Vec<String>,
+}
+
+/// Content with media for LinkedIn posts
+#[derive(Debug, Serialize)]
+struct PostContent {
+    media: MediaContent,
+}
+
+/// Media content for LinkedIn posts
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+struct MediaContent {
+    alt_text: String,
+    id: String,
+}
+
+/// Response from image upload initialization
+#[derive(Debug, Deserialize)]
+struct InitializeUploadResponse {
+    value: UploadValue,
+}
+
+#[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
+struct UploadValue {
+    upload_url: String,
+    image: String,
 }
 
 /// Run OAuth 2.0 authentication flow
@@ -211,6 +240,59 @@ fn extract_code(request_line: &str) -> Option<String> {
         .map(|(_, v)| v.to_string())
 }
 
+/// Upload an image to LinkedIn and return its URN
+///
+/// # Errors
+/// Returns error if upload fails
+async fn upload_image(image_path: &Path, token: &LinkedinToken) -> Result<String> {
+    let client = reqwest::Client::new();
+
+    // Read image file
+    let image_data = std::fs::read(image_path)
+        .with_context(|| format!("Failed to read image: {}", image_path.display()))?;
+
+    // Initialize upload
+    let init_body = serde_json::json!({
+        "initializeUploadRequest": {
+            "owner": token.person_urn
+        }
+    });
+
+    let init_response = client
+        .post(format!("{API_BASE}/rest/images?action=initializeUpload"))
+        .bearer_auth(&token.access_token)
+        .header("Content-Type", "application/json")
+        .header("X-Restli-Protocol-Version", "2.0.0")
+        .header("LinkedIn-Version", "202411")
+        .json(&init_body)
+        .send()
+        .await?;
+
+    if !init_response.status().is_success() {
+        let status = init_response.status();
+        let body = init_response.text().await?;
+        anyhow::bail!("Failed to initialize image upload: {status} - {body}");
+    }
+
+    let upload_info: InitializeUploadResponse = init_response.json().await?;
+
+    // Upload the image binary
+    let upload_response = client
+        .put(&upload_info.value.upload_url)
+        .header("Content-Type", "application/octet-stream")
+        .body(image_data)
+        .send()
+        .await?;
+
+    if !upload_response.status().is_success() {
+        let status = upload_response.status();
+        let body = upload_response.text().await?;
+        anyhow::bail!("Failed to upload image: {status} - {body}");
+    }
+
+    Ok(upload_info.value.image)
+}
+
 /// Post content to LinkedIn
 ///
 /// # Errors
@@ -228,6 +310,20 @@ pub async fn post(id: &str, dry_run: bool, custom_posts_path: Option<&Path>) -> 
         );
     }
 
+    // Resolve image path relative to posts.yaml if present
+    let image_path = if let Some(ref img) = post_data.image {
+        let path = Path::new(img);
+        if path.is_absolute() {
+            Some(path.to_path_buf())
+        } else {
+            // Resolve relative to posts.yaml directory
+            let posts_file = posts_path(custom_posts_path)?;
+            posts_file.parent().map(|p| p.join(path))
+        }
+    } else {
+        None
+    };
+
     println!("Posting: {}", post_data.title);
 
     if dry_run {
@@ -240,10 +336,28 @@ pub async fn post(id: &str, dry_run: bool, custom_posts_path: Option<&Path>) -> 
         }
         println!("{}", "-".repeat(50));
         println!("Character count: {}", content.len());
+        if let Some(ref img_path) = image_path {
+            println!("Image: {}", img_path.display());
+        }
         return Ok(());
     }
 
     let token = load_linkedin_token()?;
+
+    // Upload image if present
+    let media_content = if let Some(ref img_path) = image_path {
+        println!("Uploading image: {}", img_path.display());
+        let image_urn = upload_image(img_path, &token).await?;
+        println!("Image uploaded: {image_urn}");
+        Some(PostContent {
+            media: MediaContent {
+                alt_text: post_data.title.clone(),
+                id: image_urn,
+            },
+        })
+    } else {
+        None
+    };
 
     let request = PostRequest {
         author: token.person_urn.clone(),
@@ -254,6 +368,7 @@ pub async fn post(id: &str, dry_run: bool, custom_posts_path: Option<&Path>) -> 
             target_entities: vec![],
             third_party_distribution_channels: vec![],
         },
+        content: media_content,
         lifecycle_state: "PUBLISHED".to_string(),
         is_reshare_disabled_by_author: false,
     };
@@ -416,6 +531,7 @@ mod tests {
             },
             lifecycle_state: "PUBLISHED".to_string(),
             is_reshare_disabled_by_author: false,
+            content: None,
         };
 
         let json = serde_json::to_string(&request).unwrap();
@@ -477,5 +593,88 @@ mod tests {
         assert!(API_BASE.starts_with("https://"));
         assert!(REDIRECT_URI.contains("localhost"));
         assert!(SCOPES.contains("profile"));
+    }
+
+    #[test]
+    fn test_media_content_serialization() {
+        let media = MediaContent {
+            alt_text: "An example image".to_string(),
+            id: "urn:li:image:12345".to_string(),
+        };
+
+        let json = serde_json::to_string(&media).unwrap();
+        assert!(json.contains("\"altText\":\"An example image\""));
+        assert!(json.contains("\"id\":\"urn:li:image:12345\""));
+    }
+
+    #[test]
+    fn test_post_content_serialization() {
+        let content = PostContent {
+            media: MediaContent {
+                alt_text: "Test alt".to_string(),
+                id: "urn:li:image:999".to_string(),
+            },
+        };
+
+        let json = serde_json::to_string(&content).unwrap();
+        assert!(json.contains("\"media\":{"));
+        assert!(json.contains("\"altText\":\"Test alt\""));
+        assert!(json.contains("\"id\":\"urn:li:image:999\""));
+    }
+
+    #[test]
+    fn test_post_request_with_content() {
+        let request = PostRequest {
+            author: "urn:li:person:123".to_string(),
+            commentary: "Check out this image!".to_string(),
+            visibility: "PUBLIC".to_string(),
+            distribution: Distribution {
+                feed_distribution: "MAIN_FEED".to_string(),
+                target_entities: vec![],
+                third_party_distribution_channels: vec![],
+            },
+            lifecycle_state: "PUBLISHED".to_string(),
+            is_reshare_disabled_by_author: false,
+            content: Some(PostContent {
+                media: MediaContent {
+                    alt_text: "My image".to_string(),
+                    id: "urn:li:image:abc".to_string(),
+                },
+            }),
+        };
+
+        let json = serde_json::to_string(&request).unwrap();
+        assert!(json.contains("\"content\":{"));
+        assert!(json.contains("\"media\":{"));
+        assert!(json.contains("\"altText\":\"My image\""));
+    }
+
+    #[test]
+    fn test_post_request_content_omitted_when_none() {
+        let request = PostRequest {
+            author: "urn:li:person:123".to_string(),
+            commentary: "No image".to_string(),
+            visibility: "PUBLIC".to_string(),
+            distribution: Distribution {
+                feed_distribution: "MAIN_FEED".to_string(),
+                target_entities: vec![],
+                third_party_distribution_channels: vec![],
+            },
+            lifecycle_state: "PUBLISHED".to_string(),
+            is_reshare_disabled_by_author: false,
+            content: None,
+        };
+
+        let json = serde_json::to_string(&request).unwrap();
+        assert!(!json.contains("\"content\""));
+    }
+
+    #[test]
+    fn test_initialize_upload_response_deserialization() {
+        let json =
+            r#"{"value":{"uploadUrl":"https://example.com/upload","image":"urn:li:image:xyz"}}"#;
+        let response: InitializeUploadResponse = serde_json::from_str(json).unwrap();
+        assert_eq!(response.value.upload_url, "https://example.com/upload");
+        assert_eq!(response.value.image, "urn:li:image:xyz");
     }
 }

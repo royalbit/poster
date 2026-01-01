@@ -26,6 +26,9 @@ pub struct Post {
     pub url: String,
     pub x: String,
     pub linkedin: String,
+    /// Optional image path (relative to posts.yaml or absolute)
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub image: Option<String>,
     /// Tracking of when this post was published to each platform
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub posted: Option<PostedStatus>,
@@ -357,6 +360,7 @@ posts:
             url: "https://example.com".to_string(),
             x: "Short tweet".to_string(),
             linkedin: "LinkedIn content".to_string(),
+            image: None,
             posted: None,
         };
 
@@ -376,6 +380,7 @@ posts:
             url: "https://example.com".to_string(),
             x: long_tweet,
             linkedin: "LinkedIn content".to_string(),
+            image: None,
             posted: None,
         };
 
@@ -391,6 +396,7 @@ posts:
             url: "https://example.com".to_string(),
             x: "Tweet".to_string(),
             linkedin: "LinkedIn".to_string(),
+            image: None,
             posted: None,
         };
         let post2 = post1.clone();
@@ -410,6 +416,7 @@ posts:
             url: "https://example.com".to_string(),
             x: "Tweet".to_string(),
             linkedin: "LinkedIn".to_string(),
+            image: None,
             posted: Some(status),
         };
 
@@ -426,6 +433,7 @@ posts:
             url: "https://example.com".to_string(),
             x: "Short tweet".to_string(),
             linkedin: "LinkedIn".to_string(),
+            image: None,
             posted: Some(PostedStatus::default()),
         }];
 
@@ -441,6 +449,7 @@ posts:
             url: "https://example.com".to_string(),
             x: "x".repeat(300),
             linkedin: "LinkedIn".to_string(),
+            image: None,
             posted: Some(PostedStatus::default()),
         }];
 
@@ -458,6 +467,7 @@ posts:
             url: "not-a-valid-url".to_string(),
             x: "Tweet".to_string(),
             linkedin: "LinkedIn".to_string(),
+            image: None,
             posted: Some(PostedStatus::default()),
         }];
 
@@ -475,6 +485,7 @@ posts:
             url: "https://example.com".to_string(),
             x: "Tweet".to_string(),
             linkedin: "LinkedIn".to_string(),
+            image: None,
             posted: None,
         }];
 
@@ -518,6 +529,7 @@ posts:
             url: "https://example.com".to_string(),
             x: "Tweet".to_string(),
             linkedin: "LinkedIn".to_string(),
+            image: None,
             posted: None,
         };
         assert!(!is_posted(&post, Platform::X));
@@ -532,6 +544,7 @@ posts:
             url: "https://example.com".to_string(),
             x: "Tweet".to_string(),
             linkedin: "LinkedIn".to_string(),
+            image: None,
             posted: Some(PostedStatus {
                 x: Some("2026-01-01T00:00:00Z".to_string()),
                 linkedin: None,
@@ -549,6 +562,7 @@ posts:
             url: "https://example.com".to_string(),
             x: "Tweet".to_string(),
             linkedin: "LinkedIn".to_string(),
+            image: None,
             posted: Some(PostedStatus {
                 x: None,
                 linkedin: Some("2026-01-01T00:00:00Z".to_string()),
@@ -566,6 +580,7 @@ posts:
             url: "https://example.com".to_string(),
             x: "Tweet".to_string(),
             linkedin: "LinkedIn".to_string(),
+            image: None,
             posted: Some(PostedStatus {
                 x: Some("2026-01-01T00:00:00Z".to_string()),
                 linkedin: Some("2026-01-01T00:00:00Z".to_string()),
@@ -584,6 +599,7 @@ posts:
                 url: "https://example.com/1".to_string(),
                 x: "Tweet 1".to_string(),
                 linkedin: "LinkedIn 1".to_string(),
+                image: None,
                 posted: None,
             },
             Post {
@@ -592,6 +608,7 @@ posts:
                 url: "https://example.com/2".to_string(),
                 x: "Tweet 2".to_string(),
                 linkedin: "LinkedIn 2".to_string(),
+                image: None,
                 posted: None,
             },
         ];
@@ -608,6 +625,7 @@ posts:
                 url: "https://example.com/1".to_string(),
                 x: "Tweet 1".to_string(),
                 linkedin: "LinkedIn 1".to_string(),
+                image: None,
                 posted: Some(PostedStatus {
                     x: Some("2026-01-01T00:00:00Z".to_string()),
                     linkedin: None,
@@ -619,6 +637,7 @@ posts:
                 url: "https://example.com/2".to_string(),
                 x: "Tweet 2".to_string(),
                 linkedin: "LinkedIn 2".to_string(),
+                image: None,
                 posted: None,
             },
         ];
@@ -638,6 +657,7 @@ posts:
             url: "https://example.com/1".to_string(),
             x: "Tweet 1".to_string(),
             linkedin: "LinkedIn 1".to_string(),
+            image: None,
             posted: Some(PostedStatus {
                 x: Some("2026-01-01T00:00:00Z".to_string()),
                 linkedin: Some("2026-01-01T00:00:00Z".to_string()),
@@ -790,6 +810,24 @@ posts:
 ";
             let result = validate_yaml(yaml);
             assert!(result.is_err());
+        }
+
+        #[test]
+        fn test_schema_validates_post_with_image() {
+            let yaml = r"
+posts:
+  - id: test-post
+    title: Test Post
+    url: https://example.com
+    x: Tweet content
+    linkedin: LinkedIn content
+    image: ./images/test.png
+";
+            let result = validate_yaml(yaml);
+            assert!(
+                result.is_ok(),
+                "Post with image should be valid: {result:?}"
+            );
         }
     }
 }

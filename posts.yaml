@@ -386,11 +386,11 @@ posts:
 
     He was right.
 
-    Agent-R (ByteDance) shows MCTS-based reflection enables real-time error correction.
-    MATC (HK PolyU) shows +15.7% improvement via self-correction before error propagation.
+    Agent-R - ByteDance - shows MCTS-based reflection enables real-time error correction.
+    MATC - HK PolyU - shows +15.7% improvement via self-correction before error propagation.
     Retry logic alone reduces API failures by 90%.
 
-    When you factor in self-correction (60% correction rate):
+    When you factor in self-correction - 60% correction rate:
     - Gap at 10 steps: 5.6x → 1.9x
     - Gap at 20 steps: 31x → 3.5x
     - Fragmented runway: 3.1 steps → 8.3 steps to failure
@@ -399,7 +399,7 @@ posts:
 
     So we published ADR-055: Balanced Architecture Critique.
 
-    20 new references. Updated Forge model. Nuance added to ADR-027 (BMAD).
+    20 new references. Updated Forge model. Nuance added to ADR-027 - BMAD.
 
     Per our sycophancy protocol: "Truth over comfort. Disagree openly."
 
@@ -408,7 +408,9 @@ posts:
     https://github.com/royalbit/asimov/blob/main/docs/adr/055-balanced-architecture-critique.md
 
     #AI #AIAlignment #Honesty #OpenScience #Truth
-  posted: {}
+  posted:
+    x: 2026-01-01T04:07:30.374830910+00:00
+    linkedin: 2026-01-01T04:07:54.438092431+00:00
 - id: 60-the-pause
   title: The Pause
   url: https://royalbit.github.io/daneel/posts/60-the-pause/

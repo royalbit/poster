@@ -1,26 +1,30 @@
 //! X/Twitter API integration
 //!
-//! Handles posting via the X API v2 using OAuth 1.0a.
+//! Handles posting via the X API v2 using OAuth 2.0 with PKCE.
 
-use crate::config::{load_x_creds, posts_path};
+use crate::config::{load_x_oauth2_creds, load_x_token, posts_path, save_x_token, XToken};
 use crate::posts::{
     filter_unposted, find_post_with_path, load_posts_with_path, update_posted_timestamp, Platform,
 };
 use anyhow::{Context, Result};
 use base64::Engine;
-use hmac::{Hmac, Mac};
+use rand::Rng;
 use reqwest::header::{HeaderMap, HeaderValue, AUTHORIZATION, CONTENT_TYPE};
 use serde::{Deserialize, Serialize};
-use sha2::Sha256;
-use std::collections::BTreeMap;
-use std::fmt::Write as _;
+use sha2::{Digest, Sha256};
+use std::io::{BufRead, BufReader, Write};
+use std::net::TcpListener;
 use std::path::Path;
-use std::time::{Duration, SystemTime, UNIX_EPOCH};
+use std::time::Duration;
+use url::Url;
 
-const API_URL: &str = "https://api.twitter.com/2/tweets";
+const AUTH_URL: &str = "https://x.com/i/oauth2/authorize";
+const TOKEN_URL: &str = "https://api.x.com/2/oauth2/token";
+const API_URL: &str = "https://api.x.com/2/tweets";
+const USERS_ME_URL: &str = "https://api.x.com/2/users/me";
 const MEDIA_UPLOAD_URL: &str = "https://upload.twitter.com/1.1/media/upload.json";
-
-type HmacSha256 = Hmac<Sha256>;
+const REDIRECT_URI: &str = "http://localhost:8686/callback";
+const SCOPES: &str = "tweet.read tweet.write users.read offline.access";
 
 /// Tweet request body
 #[derive(Debug, Serialize, Clone, PartialEq, Eq)]
@@ -53,154 +57,278 @@ struct TweetData {
     id: String,
 }
 
-/// Percent encode a string for OAuth (RFC 3986)
-#[must_use]
-pub fn percent_encode(s: &str) -> String {
-    let mut result = String::new();
-    for byte in s.bytes() {
-        match byte {
-            b'A'..=b'Z' | b'a'..=b'z' | b'0'..=b'9' | b'-' | b'.' | b'_' | b'~' => {
-                result.push(byte as char);
-            }
-            _ => {
-                let _ = write!(result, "%{byte:02X}");
-            }
-        }
+/// Token response from OAuth 2.0
+#[derive(Debug, Deserialize)]
+struct TokenResponse {
+    access_token: String,
+    refresh_token: String,
+    #[allow(dead_code)]
+    expires_in: u64,
+}
+
+/// User info response
+#[derive(Debug, Deserialize)]
+struct UserResponse {
+    data: UserData,
+}
+
+#[derive(Debug, Deserialize)]
+struct UserData {
+    id: String,
+    username: String,
+}
+
+/// Generate a random code verifier for PKCE (43-128 chars)
+fn generate_code_verifier() -> String {
+    let mut rng = rand::rng();
+    let bytes: Vec<u8> = (0..32).map(|_| rng.random::<u8>()).collect();
+    base64::engine::general_purpose::URL_SAFE_NO_PAD.encode(&bytes)
+}
+
+/// Generate code challenge from verifier (S256 method)
+fn generate_code_challenge(verifier: &str) -> String {
+    let mut hasher = Sha256::new();
+    hasher.update(verifier.as_bytes());
+    let hash = hasher.finalize();
+    base64::engine::general_purpose::URL_SAFE_NO_PAD.encode(hash)
+}
+
+/// Run OAuth 2.0 authentication flow with PKCE
+///
+/// # Errors
+/// Returns error if authentication fails at any step
+pub async fn authenticate() -> Result<()> {
+    let creds = load_x_oauth2_creds()?;
+
+    let code_verifier = generate_code_verifier();
+    let code_challenge = generate_code_challenge(&code_verifier);
+
+    // Generate random state for CSRF protection
+    let mut state = String::with_capacity(16);
+    for _ in 0..16 {
+        use std::fmt::Write;
+        let _ = write!(state, "{:x}", rand::random::<u8>() % 16);
     }
-    result
-}
 
-/// Generate a random nonce for OAuth
-#[must_use]
-pub fn generate_nonce() -> String {
-    let mut nonce = String::with_capacity(32);
-    for _ in 0..32 {
-        let _ = write!(nonce, "{:x}", rand::random::<u8>() % 16);
-    }
-    nonce
-}
-
-/// Build OAuth parameter string from components
-#[must_use]
-pub fn build_oauth_params(
-    consumer_key: &str,
-    access_token: &str,
-    timestamp: &str,
-    nonce: &str,
-) -> BTreeMap<String, String> {
-    let mut params = BTreeMap::new();
-    params.insert("oauth_consumer_key".to_string(), consumer_key.to_string());
-    params.insert("oauth_nonce".to_string(), nonce.to_string());
-    params.insert(
-        "oauth_signature_method".to_string(),
-        "HMAC-SHA256".to_string(),
-    );
-    params.insert("oauth_timestamp".to_string(), timestamp.to_string());
-    params.insert("oauth_token".to_string(), access_token.to_string());
-    params.insert("oauth_version".to_string(), "1.0".to_string());
-    params
-}
-
-/// Generate OAuth signature base string
-#[must_use]
-pub fn build_signature_base_string(
-    method: &str,
-    url: &str,
-    params: &BTreeMap<String, String>,
-) -> String {
-    let param_string: String = params
-        .iter()
-        .map(|(k, v)| format!("{}={}", percent_encode(k), percent_encode(v)))
-        .collect::<Vec<_>>()
-        .join("&");
-
-    format!(
-        "{}&{}&{}",
-        method,
-        percent_encode(url),
-        percent_encode(&param_string)
-    )
-}
-
-/// Generate HMAC-SHA256 signature
-#[must_use]
-pub fn generate_signature(base_string: &str, consumer_secret: &str, token_secret: &str) -> String {
-    let signing_key = format!(
-        "{}&{}",
-        percent_encode(consumer_secret),
-        percent_encode(token_secret)
+    let auth_url = format!(
+        "{AUTH_URL}?response_type=code&client_id={}&redirect_uri={}&scope={}&state={state}&code_challenge={code_challenge}&code_challenge_method=S256",
+        creds.client_id,
+        urlencoding::encode(REDIRECT_URI),
+        urlencoding::encode(SCOPES),
     );
 
-    let mut mac =
-        HmacSha256::new_from_slice(signing_key.as_bytes()).expect("HMAC can take key of any size");
-    mac.update(base_string.as_bytes());
-    base64::engine::general_purpose::STANDARD.encode(mac.finalize().into_bytes())
+    println!("Opening browser for X authorization...");
+    println!("If browser doesn't open, visit:\n{auth_url}\n");
+
+    let _: Result<(), _> = open::that(&auth_url);
+
+    let listener = TcpListener::bind("127.0.0.1:8686").context("Failed to bind to port 8686")?;
+
+    println!("Waiting for authorization callback...");
+
+    let (mut stream, _) = listener.accept()?;
+    let mut reader = BufReader::new(&stream);
+    let mut request_line = String::new();
+    reader.read_line(&mut request_line)?;
+
+    let (code, returned_state) =
+        extract_code_and_state(&request_line).context("Failed to extract authorization code")?;
+
+    // Verify state matches
+    if returned_state != state {
+        anyhow::bail!("State mismatch - possible CSRF attack");
+    }
+
+    let response = "HTTP/1.1 200 OK\r\nContent-Type: text/html\r\n\r\n\
+        <html><body style='font-family:sans-serif;text-align:center;padding:50px'>\
+        <h1>Authorization Successful!</h1>\
+        <p>You can close this window and return to the terminal.</p>\
+        </body></html>";
+    stream.write_all(response.as_bytes())?;
+
+    println!("Authorization code received. Exchanging for token...");
+
+    let client = reqwest::Client::new();
+
+    // Build token request - use Basic auth for confidential clients
+    let mut request = client.post(TOKEN_URL).form(&[
+        ("grant_type", "authorization_code"),
+        ("code", &code),
+        ("redirect_uri", REDIRECT_URI),
+        ("code_verifier", &code_verifier),
+    ]);
+
+    // Add client credentials
+    if let Some(ref secret) = creds.client_secret {
+        // Confidential client: use Basic auth
+        request = request.basic_auth(&creds.client_id, Some(secret));
+    } else {
+        // Public client: include client_id in body
+        request = request.form(&[("client_id", &creds.client_id)]);
+    }
+
+    let token_response = request.send().await?;
+
+    if !token_response.status().is_success() {
+        let status = token_response.status();
+        let body = token_response.text().await?;
+        anyhow::bail!("Token exchange failed: {status} - {body}");
+    }
+
+    let token_data: TokenResponse = token_response
+        .json()
+        .await
+        .context("Failed to parse token response")?;
+
+    println!("Token obtained. Fetching profile...");
+
+    // Get user info
+    let user_response = client
+        .get(USERS_ME_URL)
+        .bearer_auth(&token_data.access_token)
+        .send()
+        .await?;
+
+    if !user_response.status().is_success() {
+        let status = user_response.status();
+        let body = user_response.text().await?;
+        anyhow::bail!("Failed to fetch profile: {status} - {body}");
+    }
+
+    let user_data: UserResponse = user_response
+        .json()
+        .await
+        .context("Failed to parse user response")?;
+
+    println!("Authenticated as: @{}", user_data.data.username);
+
+    let token = XToken {
+        access_token: token_data.access_token,
+        refresh_token: token_data.refresh_token,
+        user_id: user_data.data.id,
+        username: user_data.data.username,
+        saved_at: chrono::Utc::now().to_rfc3339(),
+    };
+
+    save_x_token(&token)?;
+
+    println!("\nAuthentication complete! You can now post to X.");
+
+    Ok(())
 }
 
-/// Build OAuth authorization header value
-#[must_use]
-pub fn build_auth_header(
-    consumer_key: &str,
-    access_token: &str,
-    signature: &str,
-    timestamp: &str,
-    nonce: &str,
-) -> String {
-    format!(
-        r#"OAuth oauth_consumer_key="{}", oauth_nonce="{}", oauth_signature="{}", oauth_signature_method="HMAC-SHA256", oauth_timestamp="{}", oauth_token="{}", oauth_version="1.0""#,
-        percent_encode(consumer_key),
-        percent_encode(nonce),
-        percent_encode(signature),
-        percent_encode(timestamp),
-        percent_encode(access_token),
-    )
+/// Extract authorization code and state from callback URL
+fn extract_code_and_state(request_line: &str) -> Option<(String, String)> {
+    let path = request_line.split_whitespace().nth(1)?;
+    let url = Url::parse(&format!("http://localhost{path}")).ok()?;
+
+    let code = url
+        .query_pairs()
+        .find(|(k, _)| k == "code")
+        .map(|(_, v)| v.to_string())?;
+
+    let state = url
+        .query_pairs()
+        .find(|(k, _)| k == "state")
+        .map(|(_, v)| v.to_string())?;
+
+    Some((code, state))
 }
 
-/// Generate OAuth 1.0a authorization header
-fn oauth_header(
-    consumer_key: &str,
-    consumer_secret: &str,
-    access_token: &str,
-    access_token_secret: &str,
-    method: &str,
-    url: &str,
-) -> String {
-    let timestamp = SystemTime::now()
-        .duration_since(UNIX_EPOCH)
-        .expect("Time went backwards")
-        .as_secs()
-        .to_string();
+/// Refresh the access token using refresh token
+///
+/// # Errors
+/// Returns error if refresh fails
+async fn refresh_token(token: &XToken) -> Result<XToken> {
+    let creds = load_x_oauth2_creds()?;
+    let client = reqwest::Client::new();
 
-    let nonce = generate_nonce();
-    let params = build_oauth_params(consumer_key, access_token, &timestamp, &nonce);
-    let base_string = build_signature_base_string(method, url, &params);
-    let signature = generate_signature(&base_string, consumer_secret, access_token_secret);
+    // Build refresh request - use Basic auth for confidential clients
+    let mut request = client.post(TOKEN_URL).form(&[
+        ("grant_type", "refresh_token"),
+        ("refresh_token", &token.refresh_token),
+    ]);
 
-    build_auth_header(consumer_key, access_token, &signature, &timestamp, &nonce)
+    // Add client credentials
+    if let Some(ref secret) = creds.client_secret {
+        request = request.basic_auth(&creds.client_id, Some(secret));
+    } else {
+        request = request.form(&[("client_id", &creds.client_id)]);
+    }
+
+    let response = request.send().await?;
+
+    if !response.status().is_success() {
+        let status = response.status();
+        let body = response.text().await?;
+        anyhow::bail!(
+            "Token refresh failed: {status} - {body}\n\nRun 'poster x auth' to re-authenticate."
+        );
+    }
+
+    let token_data: TokenResponse = response.json().await?;
+
+    let new_token = XToken {
+        access_token: token_data.access_token,
+        refresh_token: token_data.refresh_token,
+        user_id: token.user_id.clone(),
+        username: token.username.clone(),
+        saved_at: chrono::Utc::now().to_rfc3339(),
+    };
+
+    save_x_token(&new_token)?;
+    println!("Token refreshed.");
+
+    Ok(new_token)
+}
+
+/// Get a valid access token, refreshing if needed
+async fn get_valid_token() -> Result<XToken> {
+    let token = load_x_token()?;
+
+    // Try a simple API call to check if token is valid
+    let client = reqwest::Client::new();
+    let response = client
+        .get(USERS_ME_URL)
+        .bearer_auth(&token.access_token)
+        .send()
+        .await?;
+
+    if response.status().is_success() {
+        return Ok(token);
+    }
+
+    // Token expired, try to refresh
+    if response.status() == 401 {
+        println!("Access token expired, refreshing...");
+        return refresh_token(&token).await;
+    }
+
+    let status = response.status();
+    let body = response.text().await?;
+    anyhow::bail!("API error: {status} - {body}");
 }
 
 /// Upload an image to X and return its media ID
 ///
+/// Note: Media upload still uses v1.1 API which requires app-level auth
+/// For now, we'll skip media upload with OAuth 2.0 user tokens
+///
 /// # Errors
 /// Returns error if upload fails
-async fn upload_image(image_path: &Path, creds: &crate::config::XConfig) -> Result<String> {
+async fn upload_image(image_path: &Path, token: &XToken) -> Result<String> {
     // Read and base64 encode the image
     let image_data = std::fs::read(image_path)
         .with_context(|| format!("Failed to read image: {}", image_path.display()))?;
     let media_data =
         base64::Engine::encode(&base64::engine::general_purpose::STANDARD, &image_data);
 
-    let auth_header = oauth_header(
-        &creds.consumer_key,
-        &creds.consumer_secret,
-        &creds.access_token,
-        &creds.access_token_secret,
-        "POST",
-        MEDIA_UPLOAD_URL,
-    );
-
+    // v1.1 media upload with OAuth 2.0 Bearer token
     let mut headers = HeaderMap::new();
-    headers.insert(AUTHORIZATION, HeaderValue::from_str(&auth_header)?);
+    headers.insert(
+        AUTHORIZATION,
+        HeaderValue::from_str(&format!("Bearer {}", token.access_token))?,
+    );
     headers.insert(
         CONTENT_TYPE,
         HeaderValue::from_static("application/x-www-form-urlencoded"),
@@ -247,7 +375,6 @@ pub async fn post(id: &str, dry_run: bool, custom_posts_path: Option<&Path>) -> 
     };
 
     println!("Posting: {}", post_data.title);
-
     if content.len() > 280 {
         println!(
             "Warning: Content is {} chars (limit 280 for free tier)",
@@ -256,120 +383,107 @@ pub async fn post(id: &str, dry_run: bool, custom_posts_path: Option<&Path>) -> 
     }
 
     if dry_run {
-        println!("\n[DRY RUN] Would post to X:");
-        println!("{}", "-".repeat(50));
-        println!("{content}");
-        println!("{}", "-".repeat(50));
-        println!("Character count: {}/280", content.len());
-        if let Some(ref img_path) = image_path {
-            println!("Image: {}", img_path.display());
+        println!("\n--- DRY RUN ---");
+        println!("Content ({} chars):\n{content}", content.len());
+        if let Some(ref path) = image_path {
+            println!("Image: {}", path.display());
         }
+        println!("--- END DRY RUN ---");
         return Ok(());
     }
 
-    let creds = load_x_creds()?;
-
-    if creds.consumer_key.is_empty() {
-        anyhow::bail!("X API credentials not found in pass royalbit/x");
-    }
+    let token = get_valid_token().await?;
 
     // Upload image if present
-    let media = if let Some(ref img_path) = image_path {
-        println!("Uploading image: {}", img_path.display());
-        let media_id = upload_image(img_path, &creds).await?;
-        println!("Image uploaded: {media_id}");
-        Some(TweetMedia {
-            media_ids: vec![media_id],
-        })
+    let media_id = if let Some(ref path) = image_path {
+        println!("Uploading image: {}", path.display());
+        match upload_image(path, &token).await {
+            Ok(id) => Some(id),
+            Err(e) => {
+                // Media upload may fail with OAuth 2.0 - warn but continue
+                println!("Warning: Image upload failed (may require OAuth 1.0a): {e}");
+                println!("Posting without image...");
+                None
+            }
+        }
     } else {
         None
     };
 
-    let auth_header = oauth_header(
-        &creds.consumer_key,
-        &creds.consumer_secret,
-        &creds.access_token,
-        &creds.access_token_secret,
-        "POST",
-        API_URL,
-    );
-
-    let mut headers = HeaderMap::new();
-    headers.insert(AUTHORIZATION, HeaderValue::from_str(&auth_header)?);
-    headers.insert(CONTENT_TYPE, HeaderValue::from_static("application/json"));
-
     let request = TweetRequest {
         text: content.to_string(),
-        media,
+        media: media_id.map(|id| TweetMedia {
+            media_ids: vec![id],
+        }),
     };
 
-    let client = reqwest::Client::new();
+    let client = reqwest::Client::builder()
+        .timeout(Duration::from_secs(30))
+        .build()?;
+
     let response = client
         .post(API_URL)
-        .headers(headers)
+        .bearer_auth(&token.access_token)
         .json(&request)
         .send()
         .await?;
 
-    if response.status().is_success() {
-        let tweet: TweetResponse = response.json().await?;
-        println!("Posted successfully!");
-        println!("Tweet ID: {}", tweet.data.id);
-        println!("URL: https://x.com/i/status/{}", tweet.data.id);
-
-        // Update posted timestamp
-        let path = posts_path(custom_posts_path)?;
-        if let Err(e) = update_posted_timestamp(id, Platform::X, &path) {
-            eprintln!("Warning: Failed to update posted timestamp: {e}");
-        }
-    } else {
+    if !response.status().is_success() {
         let status = response.status();
         let body = response.text().await?;
         anyhow::bail!("Failed to post: {status} - {body}");
     }
 
+    let tweet: TweetResponse = response.json().await?;
+    println!("Posted successfully!");
+    println!("https://x.com/{}/status/{}", token.username, tweet.data.id);
+
+    // Update posted timestamp
+    let path = posts_path(custom_posts_path)?;
+    if let Err(e) = update_posted_timestamp(id, Platform::X, &path) {
+        eprintln!("Warning: Failed to update posted timestamp: {e}");
+    }
+
     Ok(())
 }
 
-/// Post all content with delay between posts
+/// Post all unposted content with delay
 ///
 /// # Errors
-/// Returns error if any post fails
-pub async fn post_all(delay: u64, dry_run: bool, custom_posts_path: Option<&Path>) -> Result<()> {
+/// Returns error if posting fails
+pub async fn post_all(
+    delay_secs: u64,
+    dry_run: bool,
+    custom_posts_path: Option<&Path>,
+) -> Result<()> {
     let all_posts = load_posts_with_path(custom_posts_path)?;
     let posts = filter_unposted(&all_posts, Platform::X);
-    let skipped = all_posts.len() - posts.len();
-
-    if skipped > 0 {
-        println!("Skipping {skipped} already-posted item(s)");
-    }
 
     if posts.is_empty() {
-        println!("No unposted content for X.");
+        let skipped = all_posts.len();
+        if skipped > 0 {
+            println!("All {skipped} posts already posted to X. Nothing to do.");
+        } else {
+            println!("No posts found.");
+        }
         return Ok(());
     }
 
-    println!(
-        "Posting {} item(s) with {delay}s delay between posts...",
-        posts.len(),
-    );
-
-    if dry_run {
-        println!("[DRY RUN MODE]");
+    let skipped = all_posts.len() - posts.len();
+    if skipped > 0 {
+        println!("Skipping {skipped} already-posted entries.");
     }
 
-    for (i, p) in posts.iter().enumerate() {
-        println!("\n[{}/{}] {}", i + 1, posts.len(), p.title);
+    println!("Posting {} items to X...\n", posts.len());
 
-        post(&p.id, dry_run, custom_posts_path).await?;
-
-        if !dry_run && i < posts.len() - 1 {
-            println!("Waiting {delay}s before next post...");
-            tokio::time::sleep(Duration::from_secs(delay)).await;
+    for (i, post_data) in posts.iter().enumerate() {
+        if i > 0 {
+            println!("\nWaiting {delay_secs}s before next post...\n");
+            tokio::time::sleep(Duration::from_secs(delay_secs)).await;
         }
+        post(&post_data.id, dry_run, custom_posts_path).await?;
     }
 
-    println!("\nDone!");
     Ok(())
 }
 
@@ -378,137 +492,43 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_percent_encode_unreserved() {
-        // Unreserved characters should not be encoded
-        assert_eq!(percent_encode("abc"), "abc");
-        assert_eq!(percent_encode("ABC"), "ABC");
-        assert_eq!(percent_encode("123"), "123");
-        assert_eq!(percent_encode("-._~"), "-._~");
+    fn test_generate_code_verifier_length() {
+        let verifier = generate_code_verifier();
+        // 32 bytes base64 encoded = 43 chars
+        assert!(verifier.len() >= 43);
     }
 
     #[test]
-    fn test_percent_encode_reserved() {
-        assert_eq!(percent_encode(" "), "%20");
-        assert_eq!(percent_encode("!"), "%21");
-        assert_eq!(percent_encode("@"), "%40");
-        assert_eq!(percent_encode("/"), "%2F");
-        assert_eq!(percent_encode("="), "%3D");
-        assert_eq!(percent_encode("&"), "%26");
+    fn test_generate_code_challenge() {
+        let verifier = "test_verifier_string";
+        let challenge = generate_code_challenge(verifier);
+        // Should be base64url encoded SHA256 hash
+        assert!(!challenge.is_empty());
+        assert!(!challenge.contains('=')); // URL-safe no padding
     }
 
     #[test]
-    fn test_percent_encode_mixed() {
-        assert_eq!(percent_encode("hello world"), "hello%20world");
-        assert_eq!(
-            percent_encode("https://example.com"),
-            "https%3A%2F%2Fexample.com"
-        );
+    fn test_extract_code_and_state() {
+        let request = "GET /callback?code=abc123&state=xyz789 HTTP/1.1";
+        let result = extract_code_and_state(request);
+        assert!(result.is_some());
+        let (code, state) = result.unwrap();
+        assert_eq!(code, "abc123");
+        assert_eq!(state, "xyz789");
     }
 
     #[test]
-    fn test_percent_encode_empty() {
-        assert_eq!(percent_encode(""), "");
+    fn test_extract_code_and_state_missing_code() {
+        let request = "GET /callback?state=xyz789 HTTP/1.1";
+        let result = extract_code_and_state(request);
+        assert!(result.is_none());
     }
 
     #[test]
-    fn test_generate_nonce_length() {
-        let nonce = generate_nonce();
-        assert_eq!(nonce.len(), 32);
-    }
-
-    #[test]
-    fn test_generate_nonce_hex() {
-        let nonce = generate_nonce();
-        assert!(nonce.chars().all(|c| c.is_ascii_hexdigit()));
-    }
-
-    #[test]
-    fn test_generate_nonce_unique() {
-        let nonce1 = generate_nonce();
-        let nonce2 = generate_nonce();
-        // Very unlikely to be equal
-        assert_ne!(nonce1, nonce2);
-    }
-
-    #[test]
-    fn test_build_oauth_params() {
-        let params = build_oauth_params("consumer", "token", "1234567890", "nonce123");
-
-        assert_eq!(
-            params.get("oauth_consumer_key"),
-            Some(&"consumer".to_string())
-        );
-        assert_eq!(params.get("oauth_token"), Some(&"token".to_string()));
-        assert_eq!(
-            params.get("oauth_timestamp"),
-            Some(&"1234567890".to_string())
-        );
-        assert_eq!(params.get("oauth_nonce"), Some(&"nonce123".to_string()));
-        assert_eq!(
-            params.get("oauth_signature_method"),
-            Some(&"HMAC-SHA256".to_string())
-        );
-        assert_eq!(params.get("oauth_version"), Some(&"1.0".to_string()));
-    }
-
-    #[test]
-    fn test_build_signature_base_string() {
-        let params = build_oauth_params("key", "token", "123", "nonce");
-        let base = build_signature_base_string("POST", "https://api.example.com/endpoint", &params);
-
-        assert!(base.starts_with("POST&"));
-        assert!(base.contains("https%3A%2F%2Fapi.example.com%2Fendpoint"));
-    }
-
-    #[test]
-    fn test_generate_signature() {
-        // Test that signature is base64 encoded
-        let signature = generate_signature("test base string", "consumer_secret", "token_secret");
-
-        // Base64 should only contain alphanumeric, +, /, =
-        assert!(signature
-            .chars()
-            .all(|c| c.is_ascii_alphanumeric() || c == '+' || c == '/' || c == '='));
-    }
-
-    #[test]
-    fn test_generate_signature_deterministic() {
-        // Same inputs should produce same signature
-        let sig1 = generate_signature("base", "secret", "token");
-        let sig2 = generate_signature("base", "secret", "token");
-        assert_eq!(sig1, sig2);
-    }
-
-    #[test]
-    fn test_generate_signature_different_inputs() {
-        let sig1 = generate_signature("base1", "secret", "token");
-        let sig2 = generate_signature("base2", "secret", "token");
-        assert_ne!(sig1, sig2);
-    }
-
-    #[test]
-    fn test_build_auth_header_format() {
-        let header = build_auth_header("consumer_key", "access_token", "sig", "123", "nonce");
-
-        assert!(header.starts_with("OAuth "));
-        assert!(header.contains("oauth_consumer_key=\"consumer_key\""));
-        assert!(header.contains("oauth_token=\"access_token\""));
-        assert!(header.contains("oauth_signature=\"sig\""));
-        assert!(header.contains("oauth_timestamp=\"123\""));
-        assert!(header.contains("oauth_nonce=\"nonce\""));
-        assert!(header.contains("oauth_signature_method=\"HMAC-SHA256\""));
-        assert!(header.contains("oauth_version=\"1.0\""));
-    }
-
-    #[test]
-    fn test_build_auth_header_encodes_special_chars() {
-        let header = build_auth_header("key+value", "tok/en", "sig=nal", "123", "non ce");
-
-        // Special characters should be percent-encoded
-        assert!(header.contains("key%2Bvalue"));
-        assert!(header.contains("tok%2Fen"));
-        assert!(header.contains("sig%3Dnal"));
-        assert!(header.contains("non%20ce"));
+    fn test_extract_code_and_state_missing_state() {
+        let request = "GET /callback?code=abc123 HTTP/1.1";
+        let result = extract_code_and_state(request);
+        assert!(result.is_none());
     }
 
     #[test]

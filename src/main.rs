@@ -77,6 +77,9 @@ enum LinkedinAction {
 
 #[derive(Subcommand)]
 enum XAction {
+    /// Authenticate with X (opens browser)
+    Auth,
+
     /// Post content to X
     Post {
         /// Post ID to publish
@@ -127,6 +130,9 @@ async fn main() -> Result<()> {
         },
 
         Commands::X { action } => match action {
+            XAction::Auth => {
+                x::authenticate().await?;
+            }
             XAction::Post { id, dry_run } => {
                 x::post(&id, dry_run, posts_path).await?;
             }

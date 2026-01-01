@@ -18,13 +18,23 @@ pub struct LinkedinConfig {
     pub client_secret: String,
 }
 
-/// X/Twitter credentials from pass
+/// X/Twitter OAuth 2.0 credentials from pass
 #[derive(Debug, Clone, PartialEq, Eq)]
-pub struct XConfig {
-    pub consumer_key: String,
-    pub consumer_secret: String,
+pub struct XOAuth2Config {
+    pub client_id: String,
+    /// Client secret (required for confidential clients like Web Apps)
+    pub client_secret: Option<String>,
+}
+
+/// X OAuth 2.0 token storage
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Eq)]
+pub struct XToken {
     pub access_token: String,
-    pub access_token_secret: String,
+    pub refresh_token: String,
+    pub user_id: String,
+    pub username: String,
+    #[serde(default)]
+    pub saved_at: String,
 }
 
 /// Parse pass output into key-value pairs
@@ -58,28 +68,17 @@ pub fn extract_linkedin_config(creds: &HashMap<String, String>) -> Result<Linked
     })
 }
 
-/// Extract X config from parsed pass output
+/// Extract X OAuth 2.0 config from parsed pass output
 ///
 /// # Errors
 /// Returns error if required fields are missing
-pub fn extract_x_config(creds: &HashMap<String, String>) -> Result<XConfig> {
-    Ok(XConfig {
-        consumer_key: creds
-            .get("consumer_key")
-            .context("Missing 'consumer_key' in royalbit/x")?
+pub fn extract_x_oauth2_config(creds: &HashMap<String, String>) -> Result<XOAuth2Config> {
+    Ok(XOAuth2Config {
+        client_id: creds
+            .get("client_id")
+            .context("Missing 'client_id' in royalbit/x")?
             .clone(),
-        consumer_secret: creds
-            .get("consumer_secret")
-            .context("Missing 'consumer_secret' in royalbit/x")?
-            .clone(),
-        access_token: creds
-            .get("access_token")
-            .context("Missing 'access_token' in royalbit/x")?
-            .clone(),
-        access_token_secret: creds
-            .get("access_token_secret")
-            .context("Missing 'access_token_secret' in royalbit/x")?
-            .clone(),
+        client_secret: creds.get("client_secret").cloned(),
     })
 }
 
@@ -110,13 +109,13 @@ pub fn load_linkedin_creds() -> Result<LinkedinConfig> {
     extract_linkedin_config(&creds)
 }
 
-/// Load X credentials from pass
+/// Load X OAuth 2.0 credentials from pass
 ///
 /// # Errors
 /// Returns error if pass entry is missing or malformed
-pub fn load_x_creds() -> Result<XConfig> {
+pub fn load_x_oauth2_creds() -> Result<XOAuth2Config> {
     let creds = read_pass("royalbit/x").context("Failed to read royalbit/x from pass")?;
-    extract_x_config(&creds)
+    extract_x_oauth2_config(&creds)
 }
 
 /// LinkedIn OAuth token storage
@@ -183,6 +182,14 @@ pub fn token_path() -> Result<PathBuf> {
     Ok(config_dir()?.join("linkedin_token.json"))
 }
 
+/// Get the X token file path
+///
+/// # Errors
+/// Returns error if config directory cannot be determined
+pub fn x_token_path() -> Result<PathBuf> {
+    Ok(config_dir()?.join("x_token.json"))
+}
+
 /// Load LinkedIn token from a specific path
 ///
 /// # Errors
@@ -228,6 +235,32 @@ pub fn save_linkedin_token(token: &LinkedinToken) -> Result<()> {
     Ok(())
 }
 
+/// Load X token from default file
+///
+/// # Errors
+/// Returns error if token file is missing or malformed
+pub fn load_x_token() -> Result<XToken> {
+    let path = x_token_path()?;
+    if !path.exists() {
+        anyhow::bail!("X token not found.\nRun 'poster x auth' first.");
+    }
+    let content = fs::read_to_string(&path)?;
+    let token: XToken = serde_json::from_str(&content)?;
+    Ok(token)
+}
+
+/// Save X token to default file
+///
+/// # Errors
+/// Returns error if token cannot be serialized or written
+pub fn save_x_token(token: &XToken) -> Result<()> {
+    let path = x_token_path()?;
+    let content = serde_json::to_string_pretty(token)?;
+    fs::write(&path, content)?;
+    println!("Token saved to {}", path.display());
+    Ok(())
+}
+
 /// Initialize posts file
 ///
 /// # Errors
@@ -245,11 +278,12 @@ pub fn init_config() -> Result<()> {
 
     println!("\nCredentials are loaded from pass:");
     println!("  pass royalbit/linkedin  (client_id, client_secret)");
-    println!("  pass royalbit/x         (consumer_key, consumer_secret, access_token, access_token_secret)");
+    println!("  pass royalbit/x         (client_id)");
     println!("\nNext steps:");
     println!("1. Ensure pass entries exist with key: value format");
-    println!("2. Run 'poster linkedin auth' to authenticate");
-    println!("3. Run 'poster list' to see available posts");
+    println!("2. Run 'poster linkedin auth' to authenticate with LinkedIn");
+    println!("3. Run 'poster x auth' to authenticate with X");
+    println!("4. Run 'poster list' to see available posts");
 
     Ok(())
 }
@@ -321,31 +355,34 @@ mod tests {
     }
 
     #[test]
-    fn test_extract_x_config_valid() {
+    fn test_extract_x_oauth2_config_valid() {
         let mut creds = HashMap::new();
-        creds.insert("consumer_key".to_string(), "key".to_string());
-        creds.insert("consumer_secret".to_string(), "secret".to_string());
-        creds.insert("access_token".to_string(), "token".to_string());
-        creds.insert(
-            "access_token_secret".to_string(),
-            "token_secret".to_string(),
-        );
+        creds.insert("client_id".to_string(), "test-client-id".to_string());
 
-        let config = extract_x_config(&creds).unwrap();
-        assert_eq!(config.consumer_key, "key");
-        assert_eq!(config.consumer_secret, "secret");
-        assert_eq!(config.access_token, "token");
-        assert_eq!(config.access_token_secret, "token_secret");
+        let config = extract_x_oauth2_config(&creds).unwrap();
+        assert_eq!(config.client_id, "test-client-id");
+        assert!(config.client_secret.is_none());
     }
 
     #[test]
-    fn test_extract_x_config_missing_field() {
+    fn test_extract_x_oauth2_config_with_secret() {
         let mut creds = HashMap::new();
-        creds.insert("consumer_key".to_string(), "key".to_string());
-        // Missing other fields
+        creds.insert("client_id".to_string(), "test-client-id".to_string());
+        creds.insert("client_secret".to_string(), "test-secret".to_string());
 
-        let result = extract_x_config(&creds);
+        let config = extract_x_oauth2_config(&creds).unwrap();
+        assert_eq!(config.client_id, "test-client-id");
+        assert_eq!(config.client_secret, Some("test-secret".to_string()));
+    }
+
+    #[test]
+    fn test_extract_x_oauth2_config_missing_field() {
+        let creds = HashMap::new();
+        // Missing client_id
+
+        let result = extract_x_oauth2_config(&creds);
         assert!(result.is_err());
+        assert!(result.unwrap_err().to_string().contains("client_id"));
     }
 
     #[test]
@@ -413,14 +450,28 @@ mod tests {
     }
 
     #[test]
-    fn test_x_config_equality() {
-        let config1 = XConfig {
-            consumer_key: "key".to_string(),
-            consumer_secret: "secret".to_string(),
-            access_token: "token".to_string(),
-            access_token_secret: "token_secret".to_string(),
+    fn test_x_oauth2_config_equality() {
+        let config1 = XOAuth2Config {
+            client_id: "client-id".to_string(),
+            client_secret: Some("secret".to_string()),
         };
         let config2 = config1.clone();
         assert_eq!(config1, config2);
+    }
+
+    #[test]
+    fn test_x_token_serialization() {
+        let token = XToken {
+            access_token: "test-access".to_string(),
+            refresh_token: "test-refresh".to_string(),
+            user_id: "12345".to_string(),
+            username: "testuser".to_string(),
+            saved_at: "2026-01-01T00:00:00Z".to_string(),
+        };
+
+        let json = serde_json::to_string(&token).unwrap();
+        let parsed: XToken = serde_json::from_str(&json).unwrap();
+
+        assert_eq!(token, parsed);
     }
 }

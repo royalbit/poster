@@ -1,6 +1,6 @@
 [package]
 name = "poster"
-version = "0.6.0"
+version = "0.7.0"
 edition = "2021"
 authors = ["Louis C. Tavares <rex@royalbit.ca>"]
 description = "RoyalBit Poster - Social media automation CLI"
@@ -40,8 +40,7 @@ open = "5"
 url = "2"
 urlencoding = "2"
 
-# OAuth for X
-hmac = "0.12"
+# OAuth
 sha2 = "0.10"
 base64 = "0.22"
 rand = "0.9"

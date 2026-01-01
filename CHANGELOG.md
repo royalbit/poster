@@ -2,6 +2,25 @@
 
 All notable changes to RoyalBit Poster.
 
+## [0.7.0] - 2026-01-01
+
+### Added
+- `poster x auth` command for browser-based OAuth 2.0 authentication
+- OAuth 2.0 with PKCE for X API (replaces OAuth 1.0a)
+- Automatic token refresh when access token expires
+- X token stored in `~/.config/poster/x_token.json`
+
+### Changed
+- X credentials now only require `client_id` in pass (not consumer keys/tokens)
+- Simplified X authentication flow matching LinkedIn's approach
+
+### Removed
+- OAuth 1.0a support for X (consumer_key, consumer_secret, access_token, access_token_secret no longer needed)
+
+### Migration
+- Run `poster x auth` to authenticate with the new OAuth 2.0 flow
+- Update `pass royalbit/x` to only contain `client_id: <your-client-id>`
+
 ## [0.6.0] - 2026-01-01
 
 ### Added

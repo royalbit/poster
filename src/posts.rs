@@ -44,7 +44,7 @@ pub struct PostsFile {
 pub fn load_posts_from_path(path: &Path) -> Result<Vec<Post>> {
     if !path.exists() {
         anyhow::bail!(
-            "Posts file not found at {}\nRun 'daneel-poster init' to create it.",
+            "Posts file not found at {}\nRun 'poster init' to create it.",
             path.display()
         );
     }
@@ -190,7 +190,7 @@ pub fn find_post_with_path(id: &str, custom_path: Option<&Path>) -> Result<Post>
     let posts = load_posts_with_path(custom_path)?;
 
     find_post_in_list(&posts, id).with_context(|| {
-        format!("Post '{id}' not found. Run 'daneel-poster list' to see available posts.")
+        format!("Post '{id}' not found. Run 'poster list' to see available posts.")
     })
 }
 

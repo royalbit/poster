@@ -1,6 +1,6 @@
-//! DANEEL Social Media Poster
+//! RoyalBit Poster
 //!
-//! Automated posting to LinkedIn and X/Twitter for DANEEL blog content.
+//! Social media automation CLI for LinkedIn and X/Twitter.
 
 #![allow(clippy::doc_markdown)] // LinkedIn is a brand name, not code
 
@@ -14,8 +14,8 @@ use clap::{Parser, Subcommand};
 use std::path::PathBuf;
 
 #[derive(Parser)]
-#[command(name = "daneel-poster")]
-#[command(about = "Automated social media poster for DANEEL blog content")]
+#[command(name = "poster")]
+#[command(about = "RoyalBit Poster - Social media automation CLI")]
 #[command(version)]
 struct Cli {
     /// Path to posts.yaml file (overrides DANEEL_POSTS_PATH env and default locations)

@@ -249,32 +249,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "daneel-poster"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "base64",
- "cargo-husky",
- "chrono",
- "clap",
- "dirs",
- "hmac",
- "open",
- "rand",
- "reqwest",
- "serde",
- "serde_json",
- "serde_yaml",
- "sha2",
- "tempfile",
- "thiserror",
- "tokio",
- "url",
- "urlencoding",
- "wiremock",
-]
-
-[[package]]
 name = "deadpool"
 version = "0.12.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1122,6 +1096,32 @@ name = "pkg-config"
 version = "0.3.32"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "7edddbd0b52d732b21ad9a5fab5c704c14cd949e5e9a1ec5929a24fded1b904c"
+
+[[package]]
+name = "poster"
+version = "0.3.0"
+dependencies = [
+ "anyhow",
+ "base64",
+ "cargo-husky",
+ "chrono",
+ "clap",
+ "dirs",
+ "hmac",
+ "open",
+ "rand",
+ "reqwest",
+ "serde",
+ "serde_json",
+ "serde_yaml",
+ "sha2",
+ "tempfile",
+ "thiserror",
+ "tokio",
+ "url",
+ "urlencoding",
+ "wiremock",
+]
 
 [[package]]
 name = "potential_utf"

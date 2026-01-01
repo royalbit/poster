@@ -76,7 +76,7 @@ pub async fn authenticate() -> Result<()> {
     let creds = load_linkedin_creds()?;
 
     let auth_url = format!(
-        "{AUTH_URL}?response_type=code&client_id={}&redirect_uri={}&scope={}&state=daneel_poster",
+        "{AUTH_URL}?response_type=code&client_id={}&redirect_uri={}&scope={}&state=royalbit_poster",
         creds.client_id,
         urlencoding::encode(REDIRECT_URI),
         urlencoding::encode(SCOPES),
@@ -329,7 +329,7 @@ mod tests {
     /// Build authorization URL for LinkedIn OAuth (test helper)
     fn build_auth_url(client_id: &str) -> String {
         format!(
-            "{AUTH_URL}?response_type=code&client_id={client_id}&redirect_uri={}&scope={}&state=daneel_poster",
+            "{AUTH_URL}?response_type=code&client_id={client_id}&redirect_uri={}&scope={}&state=royalbit_poster",
             urlencoding::encode(REDIRECT_URI),
             urlencoding::encode(SCOPES),
         )
@@ -342,21 +342,21 @@ mod tests {
 
     #[test]
     fn test_extract_code_valid() {
-        let request_line = "GET /callback?code=AQR1234567890&state=daneel_poster HTTP/1.1";
+        let request_line = "GET /callback?code=AQR1234567890&state=royalbit_poster HTTP/1.1";
         let code = extract_code(request_line);
         assert_eq!(code, Some("AQR1234567890".to_string()));
     }
 
     #[test]
     fn test_extract_code_with_other_params() {
-        let request_line = "GET /callback?state=daneel_poster&code=ABC123&other=value HTTP/1.1";
+        let request_line = "GET /callback?state=royalbit_poster&code=ABC123&other=value HTTP/1.1";
         let code = extract_code(request_line);
         assert_eq!(code, Some("ABC123".to_string()));
     }
 
     #[test]
     fn test_extract_code_no_code() {
-        let request_line = "GET /callback?state=daneel_poster HTTP/1.1";
+        let request_line = "GET /callback?state=royalbit_poster HTTP/1.1";
         let code = extract_code(request_line);
         assert!(code.is_none());
     }
@@ -381,7 +381,7 @@ mod tests {
         assert!(url.contains("response_type=code"));
         assert!(url.contains("redirect_uri="));
         assert!(url.contains("scope="));
-        assert!(url.contains("state=daneel_poster"));
+        assert!(url.contains("state=royalbit_poster"));
     }
 
     #[test]
@@ -465,5 +465,4 @@ mod tests {
         assert!(REDIRECT_URI.contains("localhost"));
         assert!(SCOPES.contains("profile"));
     }
-
 }

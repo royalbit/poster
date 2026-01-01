@@ -1,4 +1,4 @@
-//! Configuration management for daneel-poster
+//! Configuration management for poster
 //!
 //! Credentials are loaded from `pass` (password-store).
 
@@ -135,7 +135,7 @@ pub struct LinkedinToken {
 pub fn config_dir() -> Result<PathBuf> {
     let dir = dirs::config_dir()
         .context("Could not determine config directory")?
-        .join("daneel-poster");
+        .join("poster");
 
     if !dir.exists() {
         fs::create_dir_all(&dir)?;
@@ -189,7 +189,7 @@ pub fn token_path() -> Result<PathBuf> {
 /// Returns error if token file is missing or malformed
 pub fn load_token_from_path(path: &Path) -> Result<LinkedinToken> {
     if !path.exists() {
-        anyhow::bail!("LinkedIn token not found.\nRun 'daneel-poster linkedin auth' first.");
+        anyhow::bail!("LinkedIn token not found.\nRun 'poster linkedin auth' first.");
     }
 
     let content = fs::read_to_string(path)?;
@@ -248,8 +248,8 @@ pub fn init_config() -> Result<()> {
     println!("  pass royalbit/x         (consumer_key, consumer_secret, access_token, access_token_secret)");
     println!("\nNext steps:");
     println!("1. Ensure pass entries exist with key: value format");
-    println!("2. Run 'daneel-poster linkedin auth' to authenticate");
-    println!("3. Run 'daneel-poster list' to see available posts");
+    println!("2. Run 'poster linkedin auth' to authenticate");
+    println!("3. Run 'poster list' to see available posts");
 
     Ok(())
 }

@@ -1,6 +1,16 @@
 # Changelog
 
-All notable changes to daneel-poster.
+All notable changes to RoyalBit Poster.
+
+## [0.3.0] - 2026-01-01
+
+### Changed
+- Rebranded from "daneel-poster" to "RoyalBit Poster"
+- CLI command changed from `daneel-poster` to `poster`
+- Config directory changed from `~/.config/daneel-poster/` to `~/.config/poster/`
+
+### Migration
+- Users with existing tokens need to move `~/.config/daneel-poster/` to `~/.config/poster/` or re-authenticate
 
 ## [0.2.0] - 2025-12-19
 

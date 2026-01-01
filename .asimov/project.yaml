@@ -2,9 +2,9 @@
 # This file contains project-specific configuration.
 
 identity:
-  name: "daneel-poster"
+  name: "poster"
   type: rust
-  tagline: "Social media automation for DANEEL blog content"
+  tagline: "RoyalBit Poster - Social media automation CLI"
 
 context:
   parent_project: "../daneel"

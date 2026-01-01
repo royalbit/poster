@@ -1,9 +1,9 @@
 [package]
-name = "daneel-poster"
-version = "0.1.0"
+name = "poster"
+version = "0.3.0"
 edition = "2021"
 authors = ["Louis C. Tavares <rex@royalbit.ca>"]
-description = "Automated social media poster for DANEEL blog content"
+description = "RoyalBit Poster - Social media automation CLI"
 license = "LicenseRef-Proprietary"
 publish = false
 

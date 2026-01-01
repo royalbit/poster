@@ -3,63 +3,25 @@
 # WHAT to build - milestones only
 
 current:
-  version: "v0.2.0"
-  title: "Schema validation and external posts path"
-  status: "completed"
-
-completed:
-  - id: "SCHEMA-1"
-    title: "Add posted field to Post struct"
-    description: |
-      The Post struct is missing the `posted` field that exists in posts.yaml.
-      Add: posted: Option<PostedStatus> where PostedStatus has x and linkedin timestamps.
-    priority: "critical"
-    status: "completed"
-
-  - id: "SCHEMA-2"
-    title: "Add --posts-path CLI argument"
-    description: |
-      Allow specifying posts.yaml path via CLI or DANEEL_POSTS_PATH env var.
-      Default: look in cwd, then ~/.config/daneel-poster/
-      This allows daneel repo to own the posts.yaml while poster remains a tool.
-    priority: "critical"
-    status: "completed"
-
-  - id: "SCHEMA-3"
-    title: "YAML validation on load"
-    description: |
-      Validate posts.yaml on load:
-      - X posts must be <= 280 chars
-      - Required fields present
-      - URL format valid
-      - Warn on missing posted timestamps
-    priority: "high"
-    status: "completed"
-
-  - id: "SCHEMA-4"
-    title: "Update posted timestamps after successful post"
-    description: |
-      After successfully posting to X or LinkedIn:
-      - Update the posted.x or posted.linkedin field with ISO timestamp
-      - Write back to posts.yaml
-      - This tracks what's been published
-    priority: "high"
-    status: "completed"
+  version: "v0.4.0"
+  title: "Skip posted and JSON schema"
+  summary: "Add --skip-posted flag and JSON schema for posts.yaml validation"
+  status: "planned"
 
 next: []
 
 backlog:
-  - id: "BACKLOG-1"
-    title: "Add --skip-posted flag"
-    description: "Skip posts that already have posted timestamps"
-    status: "pending"
+  - "Support for media attachments"
 
-  - id: "BACKLOG-2"
-    title: "Add JSON schema for posts.yaml"
-    description: "Create a formal JSON schema for IDE validation"
-    status: "pending"
+completed:
+  - version: "v0.3.0"
+    title: "Rebrand to RoyalBit Poster"
+    summary: "Renamed from daneel-poster to poster, updated config paths and branding"
 
-  - id: "BACKLOG-3"
-    title: "Support for media attachments"
-    description: "Allow attaching images to posts"
-    status: "pending"
+  - version: "v0.2.0"
+    title: "Schema validation and external posts path"
+    summary: "Added posted field tracking, --posts-path CLI arg, YAML validation"
+
+  - version: "v0.1.0"
+    title: "Initial release"
+    summary: "LinkedIn and X posting with OAuth, dry-run support"

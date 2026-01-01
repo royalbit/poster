@@ -3,7 +3,11 @@
 # WHAT to build - milestones only
 # History moved to CHANGELOG.md
 
-current: {}
+current:
+  version: "v0.7.0"
+  title: "X OAuth 2.0 Authentication"
+  summary: "Replace OAuth 1.0a with OAuth 2.0 PKCE flow for X, enabling browser-based auth like LinkedIn"
+  status: "done"
 
 next: []
 

@@ -3,17 +3,16 @@
 # WHAT to build - milestones only
 # History moved to CHANGELOG.md
 
-current:
-  version: "v0.7.0"
-  title: "X OAuth 2.0 Authentication"
-  summary: "Replace OAuth 1.0a with OAuth 2.0 PKCE flow for X, enabling browser-based auth like LinkedIn"
-  status: "critical"
+current: null
 
 next: []
 
 backlog: []
 
 completed:
+  - version: "v0.7.0"
+    title: "X OAuth 2.0 Authentication"
+    summary: "Replace OAuth 1.0a with OAuth 2.0 PKCE flow for X, enabling browser-based auth like LinkedIn"
   - version: "v0.6.0"
     title: "Media attachments"
     summary: "Support attaching images to LinkedIn and X posts"

@@ -220,5 +220,5 @@ jobs:
           toolchain: stable
 
       - name: Publish to crates.io
-        run: cargo publish --token ${{ secrets.CRATES_IO_TOKEN }}
+        run: cargo publish --token ${{ secrets.CRATES_IO_TOKEN }} --allow-dirty
         continue-on-error: true

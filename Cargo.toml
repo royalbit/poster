@@ -29,7 +29,7 @@ clap = { version = "4", features = ["derive", "env"] }
 tokio = { version = "1", features = ["full"] }
 
 # HTTP client
-reqwest = { version = "0.12", default-features = false, features = ["json", "rustls-tls"] }
+reqwest = { version = "0.13", default-features = false, features = ["json", "form", "rustls"] }
 
 # Serialization
 serde = { version = "1", features = ["derive"] }
@@ -58,6 +58,6 @@ strip = true
 
 [dev-dependencies]
 cargo-husky = { version = "1", default-features = false, features = ["user-hooks"] }
-jsonschema = "0.29"
+jsonschema = "0.38"
 tempfile = "3"
 wiremock = "0.6"

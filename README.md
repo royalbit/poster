@@ -1,5 +1,7 @@
 # RoyalBit Poster
 
+> 📌 **R&D Prototype** — Interpret claims as hypotheses, not proven facts.
+
 Social media automation CLI for LinkedIn and X.
 
 ## Install

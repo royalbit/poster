@@ -2,6 +2,14 @@
 
 All notable changes to RoyalBit Poster.
 
+## [0.8.0] - 2026-01-01
+
+### Added
+- `poster update` command to self-update from GitHub releases
+- `poster update --check` to check for updates without installing
+- SHA256 checksum verification for downloaded binaries
+- Platform auto-detection (linux/macos x64/arm64, windows)
+
 ## [0.7.0] - 2026-01-01
 
 ### Added

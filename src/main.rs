@@ -7,6 +7,7 @@
 mod config;
 mod linkedin;
 mod posts;
+mod update;
 mod x;
 
 use anyhow::Result;
@@ -45,6 +46,13 @@ enum Commands {
 
     /// Initialize configuration files
     Init,
+
+    /// Update poster to the latest version
+    Update {
+        /// Only check for updates, don't install
+        #[arg(long)]
+        check: bool,
+    },
 }
 
 #[derive(Subcommand)]
@@ -111,6 +119,43 @@ async fn main() -> Result<()> {
     match cli.command {
         Commands::Init => {
             config::init_config()?;
+        }
+
+        Commands::Update { check } => {
+            use update::{run_update, UpdateResult};
+            match run_update(check) {
+                UpdateResult::AlreadyLatest { current, latest } => {
+                    println!("Already at latest version {current} (latest: {latest})");
+                }
+                UpdateResult::UpdateAvailable { current, latest } => {
+                    println!("Update available: {current} -> {latest}");
+                    println!("Run `poster update` to install");
+                }
+                UpdateResult::Updated { from, to } => {
+                    println!("Updated successfully: {from} -> {to}");
+                }
+                UpdateResult::UpdateFailed {
+                    current,
+                    latest,
+                    error,
+                    download_url,
+                } => {
+                    eprintln!("Update failed: {error}");
+                    eprintln!("Current: {current}, Latest: {latest}");
+                    eprintln!("Manual download: {download_url}");
+                    std::process::exit(1);
+                }
+                UpdateResult::NoBinaryAvailable { current, latest } => {
+                    eprintln!("No binary available for this platform");
+                    eprintln!("Current: {current}, Latest: {latest}");
+                    eprintln!("Install from source: cargo install royalbit-poster");
+                    std::process::exit(1);
+                }
+                UpdateResult::CheckFailed { error } => {
+                    eprintln!("Failed to check for updates: {error}");
+                    std::process::exit(1);
+                }
+            }
         }
 
         Commands::List => {

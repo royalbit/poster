@@ -4,9 +4,9 @@
 # History moved to CHANGELOG.md
 
 current:
-  version: "v0.7.0"
-  title: "X OAuth 2.0 Authentication"
-  summary: "Replace OAuth 1.0a with OAuth 2.0 PKCE flow for X, enabling browser-based auth like LinkedIn"
+  version: "v0.9.0"
+  title: "TBD"
+  summary: "Next milestone to be determined"
   status: "planned"
 
 next: []
@@ -14,6 +14,9 @@ next: []
 backlog: []
 
 completed:
+  - version: "v0.8.0"
+    title: "Self-update command"
+    summary: "Add `poster update` command to fetch latest binary from GitHub releases (port from asimov)"
   - version: "v0.7.0"
     title: "X OAuth 2.0 Authentication"
     summary: "Replace OAuth 1.0a with OAuth 2.0 PKCE flow for X, enabling browser-based auth like LinkedIn"

@@ -4,16 +4,19 @@
 # History moved to CHANGELOG.md
 
 current:
-  version: "v0.9.0"
-  title: "X Tweet Management"
-  summary: "Add list, delete, and delete-all commands for X tweets"
-  status: "in_progress"
+  version: "v0.10.0"
+  title: "TBD"
+  summary: "Next milestone to be determined"
+  status: "planned"
 
 next: []
 
 backlog: []
 
 completed:
+  - version: "v0.9.0"
+    title: "X Tweet Management"
+    summary: "Add list, delete, and delete-all commands for X tweets"
   - version: "v0.8.0"
     title: "Self-update command"
     summary: "Add `poster update` command to fetch latest binary from GitHub releases (port from asimov)"

@@ -109,6 +109,35 @@ enum XAction {
         #[arg(long, default_value = "false")]
         dry_run: bool,
     },
+
+    /// List your recent tweets
+    #[command(name = "list")]
+    List {
+        /// Maximum number of tweets to fetch (max 100 per request, will paginate)
+        #[arg(long, default_value = "100")]
+        limit: u32,
+    },
+
+    /// Delete a specific tweet by ID
+    Delete {
+        /// Tweet ID to delete
+        tweet_id: String,
+    },
+
+    /// Delete all your tweets (use with caution!)
+    DeleteAll {
+        /// Show what would be deleted without deleting
+        #[arg(long, default_value = "false")]
+        dry_run: bool,
+
+        /// Skip confirmation prompt
+        #[arg(long, default_value = "false")]
+        yes: bool,
+
+        /// Delay between deletions in milliseconds
+        #[arg(long, default_value = "1000")]
+        delay_ms: u64,
+    },
 }
 
 #[tokio::main]
@@ -183,6 +212,19 @@ async fn main() -> Result<()> {
             }
             XAction::PostAll { delay, dry_run } => {
                 x::post_all(delay, dry_run, posts_path).await?;
+            }
+            XAction::List { limit } => {
+                x::list_tweets(limit).await?;
+            }
+            XAction::Delete { tweet_id } => {
+                x::delete_tweet(&tweet_id).await?;
+            }
+            XAction::DeleteAll {
+                dry_run,
+                yes,
+                delay_ms,
+            } => {
+                x::delete_all_tweets(dry_run, yes, delay_ms).await?;
             }
         },
     }

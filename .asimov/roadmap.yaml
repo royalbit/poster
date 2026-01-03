@@ -5,9 +5,9 @@
 
 current:
   version: "v0.9.0"
-  title: "TBD"
-  summary: "Next milestone to be determined"
-  status: "planned"
+  title: "X Tweet Management"
+  summary: "Add list, delete, and delete-all commands for X tweets"
+  status: "in_progress"
 
 next: []
 

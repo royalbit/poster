@@ -26,6 +26,16 @@ const MEDIA_UPLOAD_URL: &str = "https://upload.twitter.com/1.1/media/upload.json
 const REDIRECT_URI: &str = "http://localhost:8686/callback";
 const SCOPES: &str = "tweet.read tweet.write users.read offline.access";
 
+/// User timeline endpoint (requires user_id)
+fn user_tweets_url(user_id: &str) -> String {
+    format!("https://api.x.com/2/users/{user_id}/tweets")
+}
+
+/// Delete tweet endpoint (requires tweet_id)
+fn delete_tweet_url(tweet_id: &str) -> String {
+    format!("https://api.x.com/2/tweets/{tweet_id}")
+}
+
 /// Tweet request body
 #[derive(Debug, Serialize, Clone, PartialEq, Eq)]
 pub struct TweetRequest {
@@ -76,6 +86,39 @@ struct UserResponse {
 struct UserData {
     id: String,
     username: String,
+}
+
+/// Timeline response from GET /users/{id}/tweets
+#[derive(Debug, Deserialize)]
+struct TimelineResponse {
+    #[serde(default)]
+    data: Vec<TimelineTweet>,
+    meta: Option<TimelineMeta>,
+}
+
+#[derive(Debug, Deserialize)]
+struct TimelineTweet {
+    id: String,
+    text: String,
+    created_at: Option<String>,
+}
+
+#[derive(Debug, Deserialize)]
+struct TimelineMeta {
+    next_token: Option<String>,
+    #[allow(dead_code)]
+    result_count: u32,
+}
+
+/// Delete response from DELETE /tweets/{id}
+#[derive(Debug, Deserialize)]
+struct DeleteResponse {
+    data: DeleteData,
+}
+
+#[derive(Debug, Deserialize)]
+struct DeleteData {
+    deleted: bool,
 }
 
 /// Generate a random code verifier for PKCE (43-128 chars)
@@ -487,6 +530,265 @@ pub async fn post_all(
     Ok(())
 }
 
+/// List recent tweets for the authenticated user
+///
+/// # Errors
+/// Returns error if API call fails
+pub async fn list_tweets(limit: u32) -> Result<()> {
+    let token = get_valid_token().await?;
+    let client = reqwest::Client::new();
+
+    let mut all_tweets: Vec<TimelineTweet> = Vec::new();
+    let mut pagination_token: Option<String> = None;
+    let per_page = std::cmp::min(limit, 100); // API max is 100 per request
+
+    println!("Fetching tweets for @{}...\n", token.username);
+
+    loop {
+        let mut url = format!(
+            "{}?max_results={}&tweet.fields=created_at",
+            user_tweets_url(&token.user_id),
+            per_page
+        );
+
+        if let Some(ref next_token) = pagination_token {
+            use std::fmt::Write;
+            let _ = write!(url, "&pagination_token={next_token}");
+        }
+
+        let response = client
+            .get(&url)
+            .bearer_auth(&token.access_token)
+            .send()
+            .await?;
+
+        if !response.status().is_success() {
+            let status = response.status();
+            let body = response.text().await?;
+            anyhow::bail!("Failed to fetch tweets: {status} - {body}");
+        }
+
+        let timeline: TimelineResponse = response.json().await?;
+
+        all_tweets.extend(timeline.data);
+
+        // Check if we have enough or no more pages
+        #[allow(clippy::cast_possible_truncation)]
+        let fetched = all_tweets.len() as u32; // Safe: limit is u32, we truncate at limit
+        if fetched >= limit {
+            all_tweets.truncate(limit as usize);
+            break;
+        }
+
+        match timeline.meta.and_then(|m| m.next_token) {
+            Some(next) => pagination_token = Some(next),
+            None => break,
+        }
+    }
+
+    if all_tweets.is_empty() {
+        println!("No tweets found.");
+        return Ok(());
+    }
+
+    println!("Found {} tweets:\n", all_tweets.len());
+    for tweet in &all_tweets {
+        let date = tweet.created_at.as_deref().unwrap_or("unknown");
+        let text_preview: String = tweet.text.chars().take(60).collect();
+        let ellipsis = if tweet.text.len() > 60 { "..." } else { "" };
+        println!("{} | {} | {}{}", tweet.id, date, text_preview, ellipsis);
+    }
+
+    Ok(())
+}
+
+/// Delete a single tweet by ID
+///
+/// # Errors
+/// Returns error if deletion fails
+pub async fn delete_tweet(tweet_id: &str) -> Result<()> {
+    let token = get_valid_token().await?;
+    let client = reqwest::Client::new();
+
+    println!("Deleting tweet {tweet_id}...");
+
+    let response = client
+        .delete(delete_tweet_url(tweet_id))
+        .bearer_auth(&token.access_token)
+        .send()
+        .await?;
+
+    if !response.status().is_success() {
+        let status = response.status();
+        let body = response.text().await?;
+        anyhow::bail!("Failed to delete tweet: {status} - {body}");
+    }
+
+    let result: DeleteResponse = response.json().await?;
+
+    if result.data.deleted {
+        println!("Tweet {tweet_id} deleted successfully.");
+    } else {
+        println!("Tweet {tweet_id} was not deleted (may already be gone).");
+    }
+
+    Ok(())
+}
+
+/// Delete all tweets for the authenticated user
+///
+/// # Errors
+/// Returns error if deletion fails
+#[allow(clippy::too_many_lines)]
+pub async fn delete_all_tweets(dry_run: bool, skip_confirm: bool, delay_ms: u64) -> Result<()> {
+    let token = get_valid_token().await?;
+    let client = reqwest::Client::new();
+
+    // First, fetch all tweets
+    println!("Fetching all tweets for @{}...", token.username);
+
+    let mut all_tweets: Vec<TimelineTweet> = Vec::new();
+    let mut pagination_token: Option<String> = None;
+
+    loop {
+        let mut url = format!(
+            "{}?max_results=100&tweet.fields=created_at",
+            user_tweets_url(&token.user_id)
+        );
+
+        if let Some(ref next_token) = pagination_token {
+            use std::fmt::Write;
+            let _ = write!(url, "&pagination_token={next_token}");
+        }
+
+        let response = client
+            .get(&url)
+            .bearer_auth(&token.access_token)
+            .send()
+            .await?;
+
+        if !response.status().is_success() {
+            let status = response.status();
+            let body = response.text().await?;
+            anyhow::bail!("Failed to fetch tweets: {status} - {body}");
+        }
+
+        let timeline: TimelineResponse = response.json().await?;
+        let count = timeline.data.len();
+        all_tweets.extend(timeline.data);
+
+        println!(
+            "  Fetched {} tweets (total: {})...",
+            count,
+            all_tweets.len()
+        );
+
+        match timeline.meta.and_then(|m| m.next_token) {
+            Some(next) => pagination_token = Some(next),
+            None => break,
+        }
+    }
+
+    if all_tweets.is_empty() {
+        println!("\nNo tweets found. Nothing to delete.");
+        return Ok(());
+    }
+
+    println!("\nFound {} tweets to delete.", all_tweets.len());
+
+    if dry_run {
+        println!("\n--- DRY RUN ---");
+        println!("Would delete {} tweets:", all_tweets.len());
+        for (i, tweet) in all_tweets.iter().enumerate().take(10) {
+            let text_preview: String = tweet.text.chars().take(50).collect();
+            println!("  {}. {} - {}...", i + 1, tweet.id, text_preview);
+        }
+        if all_tweets.len() > 10 {
+            println!("  ... and {} more", all_tweets.len() - 10);
+        }
+        println!("--- END DRY RUN ---");
+        return Ok(());
+    }
+
+    // Confirm unless --yes flag
+    if !skip_confirm {
+        println!(
+            "\nThis will permanently delete {} tweets. This cannot be undone!",
+            all_tweets.len()
+        );
+        print!("Type 'DELETE' to confirm: ");
+        std::io::Write::flush(&mut std::io::stdout())?;
+
+        let mut input = String::new();
+        std::io::stdin().read_line(&mut input)?;
+
+        if input.trim() != "DELETE" {
+            println!("Aborted.");
+            return Ok(());
+        }
+    }
+
+    println!("\nDeleting {} tweets...", all_tweets.len());
+
+    let mut deleted = 0;
+    let mut failed = 0;
+
+    for (i, tweet) in all_tweets.iter().enumerate() {
+        if i > 0 && delay_ms > 0 {
+            tokio::time::sleep(Duration::from_millis(delay_ms)).await;
+        }
+
+        let response = client
+            .delete(delete_tweet_url(&tweet.id))
+            .bearer_auth(&token.access_token)
+            .send()
+            .await;
+
+        match response {
+            Ok(resp) if resp.status().is_success() => {
+                deleted += 1;
+                if deleted % 10 == 0 || deleted == all_tweets.len() {
+                    println!("  Deleted {}/{}", deleted, all_tweets.len());
+                }
+            }
+            Ok(resp) => {
+                let status = resp.status();
+                // Rate limit handling
+                if status == 429 {
+                    println!("  Rate limited, waiting 60s...");
+                    tokio::time::sleep(Duration::from_secs(60)).await;
+                    // Retry this one
+                    let retry = client
+                        .delete(delete_tweet_url(&tweet.id))
+                        .bearer_auth(&token.access_token)
+                        .send()
+                        .await;
+                    if retry.is_ok_and(|r| r.status().is_success()) {
+                        deleted += 1;
+                    } else {
+                        failed += 1;
+                    }
+                } else {
+                    eprintln!("  Failed to delete {}: {}", tweet.id, status);
+                    failed += 1;
+                }
+            }
+            Err(e) => {
+                eprintln!("  Error deleting {}: {}", tweet.id, e);
+                failed += 1;
+            }
+        }
+    }
+
+    println!("\nDone! Deleted: {deleted}, Failed: {failed}");
+
+    if failed > 0 {
+        println!("Note: Some deletions failed. Run again to retry.");
+    }
+
+    Ok(())
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -593,5 +895,60 @@ mod tests {
         let json = r#"{"media_id_string":"1234567890123456789"}"#;
         let response: MediaUploadResponse = serde_json::from_str(json).unwrap();
         assert_eq!(response.media_id_string, "1234567890123456789");
+    }
+
+    #[test]
+    fn test_user_tweets_url() {
+        let url = user_tweets_url("12345");
+        assert_eq!(url, "https://api.x.com/2/users/12345/tweets");
+    }
+
+    #[test]
+    fn test_delete_tweet_url() {
+        let url = delete_tweet_url("98765");
+        assert_eq!(url, "https://api.x.com/2/tweets/98765");
+    }
+
+    #[test]
+    fn test_timeline_response_deserialization() {
+        let json = r#"{
+            "data": [
+                {"id": "123", "text": "Hello world"},
+                {"id": "456", "text": "Another tweet", "created_at": "2024-01-15T10:30:00Z"}
+            ],
+            "meta": {"next_token": "abc123", "result_count": 2}
+        }"#;
+        let response: TimelineResponse = serde_json::from_str(json).unwrap();
+        assert_eq!(response.data.len(), 2);
+        assert_eq!(response.data[0].id, "123");
+        assert_eq!(response.data[0].text, "Hello world");
+        assert!(response.data[0].created_at.is_none());
+        assert_eq!(
+            response.data[1].created_at.as_deref(),
+            Some("2024-01-15T10:30:00Z")
+        );
+        assert_eq!(
+            response.meta.as_ref().unwrap().next_token.as_deref(),
+            Some("abc123")
+        );
+        assert_eq!(response.meta.as_ref().unwrap().result_count, 2);
+    }
+
+    #[test]
+    fn test_timeline_response_empty() {
+        let json = r#"{"meta": {"result_count": 0}}"#;
+        let response: TimelineResponse = serde_json::from_str(json).unwrap();
+        assert!(response.data.is_empty());
+    }
+
+    #[test]
+    fn test_delete_response_deserialization() {
+        let json = r#"{"data": {"deleted": true}}"#;
+        let response: DeleteResponse = serde_json::from_str(json).unwrap();
+        assert!(response.data.deleted);
+
+        let json = r#"{"data": {"deleted": false}}"#;
+        let response: DeleteResponse = serde_json::from_str(json).unwrap();
+        assert!(!response.data.deleted);
     }
 }
